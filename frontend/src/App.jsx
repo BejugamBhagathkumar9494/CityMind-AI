@@ -16,6 +16,7 @@ import SettingsDataIngestion from './components/SettingsDataIngestion';
 import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
 import CityAssistantWidget from './components/CityAssistantWidget';
+import AssetInspectionDrawer from './components/AssetInspectionDrawer';
 import RoadsModule from './components/RoadsModule';
 import WaterModule from './components/WaterModule';
 import EnergyModule from './components/EnergyModule';
@@ -177,6 +178,12 @@ export default function App() {
 
       {/* Floating City AI Assistant Chat Widget */}
       <CityAssistantWidget />
+
+      {/* Slide-over Asset Inspection Drawer */}
+      <AssetInspectionDrawer
+        assetId={inspectedAsset}
+        onClose={() => setInspectedAsset(null)}
+      />
     </div>
   );
 }
