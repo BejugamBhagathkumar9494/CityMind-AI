@@ -39,9 +39,12 @@ export default function App() {
   });
 
   const handleLogout = async () => {
-    await signOutUser();
+    try {
+      await signOutUser();
+    } catch (e) {}
+    localStorage.removeItem('citymind_user');
     setUser(null);
-    setViewMode('auth');
+    setViewMode('landing');
   };
 
   // 3-Minute Hackathon Demo Mode
@@ -51,8 +54,8 @@ export default function App() {
   // Asset Inspection Drawer state
   const [inspectedAsset, setInspectedAsset] = useState(null);
 
-  // Strict Route Guard: If not authenticated OR in 'auth' view mode, render ONLY AuthPage outside dashboard layout
-  if (!user || viewMode === 'auth') {
+  // Dedicated SaaS Auth Page (Full-Screen 100vw x 100vh)
+  if (viewMode === 'auth') {
     return (
       <AuthPage
         onLoginSuccess={(u) => {
@@ -64,10 +67,17 @@ export default function App() {
     );
   }
 
-  if (viewMode === 'landing') {
+  // Landing Page Route: Whenever logged out or in 'landing' mode
+  if (viewMode === 'landing' || !user) {
     return (
       <LandingPage
-        onExplore={() => setViewMode('dashboard')}
+        onExplore={() => {
+          if (!user) {
+            setViewMode('auth');
+          } else {
+            setViewMode('dashboard');
+          }
+        }}
         onOpenAuth={() => setViewMode('auth')}
       />
     );
