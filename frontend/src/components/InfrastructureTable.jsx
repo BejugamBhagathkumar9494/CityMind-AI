@@ -9,7 +9,9 @@ import {
   FileSpreadsheet,
   ChevronDown,
   ArrowUpDown,
-  ExternalLink
+  ExternalLink,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { fetchInfrastructure } from '../services/api';
 
@@ -20,9 +22,23 @@ export default function InfrastructureTable({ onOpenInspection }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState('priority_score');
   const [sortAsc, setSortAsc] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchInfrastructure(typeFilter, urgencyFilter).then(data => setAssets(data));
+    async function loadAssets() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await fetchInfrastructure(typeFilter, urgencyFilter);
+        setAssets(data || []);
+      } catch (err) {
+        setError(err.message || 'Failed to load infrastructure inventory.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadAssets();
   }, [typeFilter, urgencyFilter]);
 
   const filteredAssets = assets.filter(a => {
@@ -58,191 +74,145 @@ export default function InfrastructureTable({ onOpenInspection }) {
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">City Infrastructure Inventory</h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Detailed asset register with XGBoost failure probabilities, priority scores, and maintenance cost estimates.
+            Real-time asset registry linked with XGBoost risk probabilities & priority ranking.
           </p>
         </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => alert("Exporting Infrastructure Register to CSV...")}
-            className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow-xs transition-colors"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span>Export CSV</span>
-          </button>
-        </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by Asset ID, name, ward location..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-4 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Type Filter */}
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-slate-500 font-medium">Type:</span>
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-700 focus:outline-none"
-            >
-              <option value="All">All Types</option>
-              <option value="Road">Roads</option>
-              <option value="Water">Water Network</option>
-              <option value="Electricity">Electricity Grid</option>
-              <option value="Public Transport">Public Transport</option>
-              <option value="Critical Facility">Critical Facilities</option>
-            </select>
+      {/* Filter Bar */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-card flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          {/* Search */}
+          <div className="relative flex-1 sm:w-64">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by ID, asset name, location..."
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+            />
           </div>
+
+          {/* Type Filter */}
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="All">All Sectors</option>
+            <option value="Road">Road Corridor</option>
+            <option value="Water">Water Supply</option>
+            <option value="Electricity">Electricity Grid</option>
+            <option value="Transport">Public Transport</option>
+            <option value="Critical Facility">Critical Facility</option>
+          </select>
 
           {/* Urgency Filter */}
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-slate-500 font-medium">Urgency:</span>
-            <select
-              value={urgencyFilter}
-              onChange={(e) => setUrgencyFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-700 focus:outline-none"
-            >
-              <option value="All">All Urgencies</option>
-              <option value="Critical">Critical Only</option>
-              <option value="High">High Risk</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Operational Low</option>
-            </select>
-          </div>
+          <select
+            value={urgencyFilter}
+            onChange={(e) => setUrgencyFilter(e.target.value)}
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="All">All Urgencies</option>
+            <option value="Critical">Critical Urgency</option>
+            <option value="High">High Urgency</option>
+            <option value="Medium">Medium Urgency</option>
+            <option value="Low">Low Urgency</option>
+          </select>
+        </div>
+
+        <div className="text-xs font-bold text-slate-500">
+          Showing {filteredAssets.length} of {assets.length} assets
         </div>
       </div>
 
-      {/* Enterprise Data Grid Table */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                <th className="py-3 px-4">Asset ID & Name</th>
-                <th className="py-3 px-3">Type & Location</th>
-                <th className="py-3 px-3 cursor-pointer hover:text-slate-900" onClick={() => handleSort('condition_rating')}>
-                  <div className="flex items-center gap-1">
-                    <span>Condition</span>
-                    <ArrowUpDown className="w-3 h-3" />
-                  </div>
-                </th>
-                <th className="py-3 px-3 cursor-pointer hover:text-slate-900" onClick={() => handleSort('risk_score')}>
-                  <div className="flex items-center gap-1">
-                    <span>Risk Score</span>
-                    <ArrowUpDown className="w-3 h-3" />
-                  </div>
-                </th>
-                <th className="py-3 px-3 cursor-pointer hover:text-slate-900" onClick={() => handleSort('failure_probability')}>
-                  <div className="flex items-center gap-1">
-                    <span>Failure Prob</span>
-                    <ArrowUpDown className="w-3 h-3" />
-                  </div>
-                </th>
-                <th className="py-3 px-3">Complaints</th>
-                <th className="py-3 px-3">Citizens Reach</th>
-                <th className="py-3 px-3">Repair Cost</th>
-                <th className="py-3 px-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-              {filteredAssets.map((asset) => {
-                const isCritical = asset.risk_score >= 85;
-                const isHigh = asset.risk_score >= 70 && asset.risk_score < 85;
+      {/* Error Alert */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-700 text-xs font-semibold">
+          <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
 
-                return (
-                  <tr
-                    key={asset.id}
-                    className="hover:bg-blue-50/40 transition-colors cursor-pointer"
-                    onClick={() => onOpenInspection && onOpenInspection(asset)}
-                  >
-                    <td className="py-3 px-4">
-                      <div>
-                        <span className="text-[10px] font-mono font-bold text-slate-400 block">{asset.id}</span>
-                        <span className="font-bold text-slate-900 text-xs">{asset.name}</span>
-                      </div>
-                    </td>
-
-                    <td className="py-3 px-3">
-                      <div>
-                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">
-                          {asset.type}
-                        </span>
-                        <p className="text-[11px] text-slate-500 mt-0.5">{asset.location}</p>
-                      </div>
-                    </td>
-
-                    <td className="py-3 px-3">
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-12 bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full ${asset.condition_rating < 3 ? 'bg-red-500' : 'bg-emerald-500'}`}
-                            style={{ width: `${(asset.condition_rating / 10) * 100}%` }}
-                          />
-                        </div>
-                        <span className="font-bold text-slate-900">{asset.condition_rating}/10</span>
-                      </div>
-                    </td>
-
-                    <td className="py-3 px-3">
-                      <span className={`inline-flex items-center gap-1 font-extrabold px-2 py-0.5 rounded-full text-[10px] ${
-                        isCritical
-                          ? 'bg-red-100 text-red-700'
-                          : isHigh
-                          ? 'bg-orange-100 text-orange-700'
-                          : 'bg-emerald-100 text-emerald-700'
-                      }`}>
-                        {isCritical && <ShieldAlert className="w-3 h-3" />}
-                        {asset.risk_score}%
-                      </span>
-                    </td>
-
-                    <td className="py-3 px-3">
-                      <span className="font-mono text-xs font-semibold text-slate-800">
-                        {(asset.failure_probability * 100).toFixed(0)}%
-                      </span>
-                    </td>
-
-                    <td className="py-3 px-3">
-                      <span className="font-semibold text-slate-900">{asset.complaints_count}</span>
-                    </td>
-
-                    <td className="py-3 px-3">
-                      <span className="text-slate-800 font-medium">{asset.population_affected?.toLocaleString()}</span>
-                    </td>
-
-                    <td className="py-3 px-3">
-                      <span className="font-bold text-blue-700">₹{asset.repair_cost_inr} Cr</span>
-                    </td>
-
-                    <td className="py-3 px-4 text-right">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (onOpenInspection) onOpenInspection(asset);
-                        }}
-                        className="text-blue-600 hover:text-blue-800 text-xs font-bold hover:underline flex items-center gap-0.5 justify-end ml-auto"
-                      >
-                        <span>Inspect</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </button>
+      {/* Loading State */}
+      {isLoading ? (
+        <div className="min-h-[350px] flex flex-col items-center justify-center space-y-3 bg-white border border-slate-200 rounded-2xl p-12">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+          <p className="text-xs font-bold text-slate-600">Loading Infrastructure Assets from Database...</p>
+        </div>
+      ) : (
+        /* Inventory Table */
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-slate-600">
+              <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+                <tr>
+                  <th className="p-4 cursor-pointer" onClick={() => handleSort('id')}>Asset ID</th>
+                  <th className="p-4 cursor-pointer" onClick={() => handleSort('name')}>Asset Name</th>
+                  <th className="p-4">Sector Type</th>
+                  <th className="p-4">Location</th>
+                  <th className="p-4 cursor-pointer" onClick={() => handleSort('risk_score')}>Risk Score</th>
+                  <th className="p-4 cursor-pointer" onClick={() => handleSort('failure_probability')}>Fail Prob</th>
+                  <th className="p-4">Urgency</th>
+                  <th className="p-4">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium">
+                {filteredAssets.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="p-8 text-center text-slate-400">
+                      No assets found matching filters.
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                ) : (
+                  filteredAssets.map((asset) => (
+                    <tr key={asset.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="p-4 font-mono font-bold text-slate-900">{asset.id}</td>
+                      <td className="p-4 font-bold text-slate-900">{asset.name}</td>
+                      <td className="p-4">
+                        <span className="bg-slate-100 text-slate-700 font-bold text-[10px] px-2 py-0.5 rounded-md">
+                          {asset.type}
+                        </span>
+                      </td>
+                      <td className="p-4 text-slate-600">{asset.location}</td>
+                      <td className="p-4">
+                        <span className={`font-bold px-2 py-0.5 rounded-md text-[10px] ${
+                          (asset.risk_score || asset.failure_probability * 100) >= 75
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-amber-100 text-amber-700'
+                        }`}>
+                          {asset.risk_score || Math.round((asset.failure_probability || 0.5) * 100)}%
+                        </span>
+                      </td>
+                      <td className="p-4 font-bold text-slate-700">
+                        {(asset.failure_probability || 0.5).toFixed(2)}
+                      </td>
+                      <td className="p-4">
+                        <span className={`font-bold text-[10px] px-2 py-0.5 rounded-md ${
+                          asset.urgency === 'Critical' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-amber-50 text-amber-600 border border-amber-200'
+                        }`}>
+                          {asset.urgency || 'Medium'}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <button
+                          onClick={() => onOpenInspection && onOpenInspection(asset.id)}
+                          className="text-blue-600 hover:text-blue-700 font-bold text-xs flex items-center gap-1"
+                        >
+                          <span>Inspect</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
+
     </div>
   );
 }
