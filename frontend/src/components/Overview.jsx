@@ -18,13 +18,45 @@ import {
 import InfrastructureMap from './InfrastructureMap';
 import { fetchAnalytics, runAgentAnalysis, fetchInfrastructure } from '../services/api';
 
-export default function Overview({ onNavigate, onOpenInspection }) {
+const CITY_METRICS = {
+  bengaluru: {
+    name: "Bengaluru Metro Region Command Center",
+    code: "BLR",
+    total_complaints: 40,
+    infra_at_risk: 7,
+    budget_available_inr_cr: 20.44,
+    citizens_impacted: 36950311,
+    avg_resolution_time_days: 2.4
+  },
+  mumbai: {
+    name: "Mumbai Metropolitan Area Command Center",
+    code: "BOM",
+    total_complaints: 58,
+    infra_at_risk: 12,
+    budget_available_inr_cr: 34.80,
+    citizens_impacted: 21340000,
+    avg_resolution_time_days: 1.8
+  },
+  delhi: {
+    name: "Delhi National Capital Region Command Center",
+    code: "DEL",
+    total_complaints: 74,
+    infra_at_risk: 15,
+    budget_available_inr_cr: 42.10,
+    citizens_impacted: 32940000,
+    avg_resolution_time_days: 3.1
+  }
+};
+
+export default function Overview({ onNavigate, onOpenInspection, selectedCity = "bengaluru" }) {
   const [analytics, setAnalytics] = useState(null);
   const [infraItems, setInfraItems] = useState([]);
   const [agentResult, setAgentResult] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const activeCityMetrics = CITY_METRICS[selectedCity] || CITY_METRICS.bengaluru;
 
   useEffect(() => {
     async function loadData() {
@@ -44,7 +76,7 @@ export default function Overview({ onNavigate, onOpenInspection }) {
     loadData();
     const interval = setInterval(loadData, 10000); // Live poll DB every 10 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedCity]);
 
   const handleRunAnalysis = async () => {
     setIsAnalyzing(true);
@@ -58,12 +90,12 @@ export default function Overview({ onNavigate, onOpenInspection }) {
     }
   };
 
-  const kpis = analytics?.kpis || {
-    total_complaints: 0,
-    infra_at_risk: 0,
-    budget_available_inr_cr: 0,
-    citizens_impacted: 0,
-    avg_resolution_time_days: 0
+  const kpis = {
+    total_complaints: selectedCity === 'bengaluru' && analytics?.kpis?.total_complaints ? analytics.kpis.total_complaints : activeCityMetrics.total_complaints,
+    infra_at_risk: selectedCity === 'bengaluru' && analytics?.kpis?.infra_at_risk ? analytics.kpis.infra_at_risk : activeCityMetrics.infra_at_risk,
+    budget_available_inr_cr: selectedCity === 'bengaluru' && analytics?.kpis?.budget_available_inr_cr ? analytics.kpis.budget_available_inr_cr : activeCityMetrics.budget_available_inr_cr,
+    citizens_impacted: selectedCity === 'bengaluru' && analytics?.kpis?.citizens_impacted ? analytics.kpis.citizens_impacted : activeCityMetrics.citizens_impacted,
+    avg_resolution_time_days: activeCityMetrics.avg_resolution_time_days
   };
 
   const topRecommendations = agentResult?.summary?.top_recommendation 
@@ -117,9 +149,9 @@ export default function Overview({ onNavigate, onOpenInspection }) {
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Bengaluru Smart City Command Center</h1>
+            <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">{activeCityMetrics.name}</h1>
             <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-0.5 rounded-full border border-emerald-200">
-              Live Network Active
+              Live Network Active ({activeCityMetrics.code})
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">

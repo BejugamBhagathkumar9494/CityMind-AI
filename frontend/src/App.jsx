@@ -89,6 +89,7 @@ export default function App() {
       case 'overview':
         return (
           <Overview
+            selectedCity={selectedCity}
             onNavigate={(tab) => setActiveTab(tab)}
             onOpenInspection={(asset) => setInspectedAsset(asset)}
           />
