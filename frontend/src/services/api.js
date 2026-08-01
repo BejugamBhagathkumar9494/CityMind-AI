@@ -1,6 +1,13 @@
-// CityMind AI API Service Layer — 100% Real Data Pipeline
+const getApiBase = () => {
+  let url = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+  url = url.trim().replace(/\/+$/, '');
+  if (!url.endsWith('/api') && !url.includes('/api/')) {
+    url = `${url}/api`;
+  }
+  return url;
+};
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = getApiBase();
 
 export async function fetchInfrastructure(typeFilter = 'All', urgencyFilter = 'All') {
   const res = await fetch(`${API_BASE}/infrastructure?type_filter=${typeFilter}&urgency_filter=${urgencyFilter}`);
