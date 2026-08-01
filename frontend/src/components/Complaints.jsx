@@ -9,7 +9,9 @@ import {
   CheckCircle2, 
   Clock, 
   Layers,
-  Filter
+  Filter,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { fetchComplaints } from '../services/api';
 
@@ -17,18 +19,31 @@ export default function Complaints() {
   const [complaints, setComplaints] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCluster, setSelectedCluster] = useState('All');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchComplaints(searchTerm).then(res => setComplaints(res));
+    async function loadComplaints() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const res = await fetchComplaints(searchTerm);
+        setComplaints(res || []);
+      } catch (err) {
+        setError(err.message || 'Failed to fetch citizen complaints.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadComplaints();
   }, [searchTerm]);
 
-  const clusters = [
-    { id: 'All', name: 'All Complaints', count: 12842 },
-    { id: 'potholes', name: 'Road Potholes & Cave-ins', count: 4892 },
-    { id: 'water', name: 'Water Quality & Contamination', count: 3210 },
-    { id: 'power', name: 'Power Grid Voltage Spikes', count: 2840 },
-    { id: 'drainage', name: 'Drainage & Overflow', count: 1900 }
-  ];
+  const categories = ['All', ...Array.from(new Set(complaints.map(c => c.category)))];
+
+  const filteredComplaints = complaints.filter(c => {
+    if (selectedCluster !== 'All' && c.category !== selectedCluster) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-6 pb-12">
@@ -37,7 +52,7 @@ export default function Complaints() {
         <div>
           <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Citizen Complaint Intelligence</h1>
           <p className="text-xs text-slate-500 mt-1">
-            NLP Sentence Transformer embeddings + K-Means clustering categorizing 12,842 raw citizen feedback reports.
+            NLP Sentence Transformer embeddings + K-Means clustering categorizing live citizen feedback reports.
           </p>
         </div>
 
@@ -53,7 +68,7 @@ export default function Complaints() {
       <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-card space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Semantic AI Complaint Search</span>
-          <span className="text-[11px] text-slate-400">Try query: "Find recurring water problems near schools"</span>
+          <span className="text-[11px] text-slate-400">Search by query, location, or issue description</span>
         </div>
 
         <div className="relative">
@@ -62,72 +77,86 @@ export default function Complaints() {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Type natural language query (e.g., 'water leakage in indiranagar', 'transformer spark whitefield')..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Type natural language query (e.g., 'water leakage', 'power outage', 'road pothole')..."
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
           />
         </div>
       </div>
 
-      {/* NLP Clusters Pills */}
+      {/* Dynamic Clusters Pills */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        <span className="text-xs font-bold text-slate-400 mr-2 shrink-0">AI Clusters:</span>
-        {clusters.map((c) => (
+        <span className="text-xs font-bold text-slate-400 mr-2 shrink-0">Filter Category:</span>
+        {categories.map((cat) => (
           <button
-            key={c.id}
-            onClick={() => setSelectedCluster(c.id)}
+            key={cat}
+            onClick={() => setSelectedCluster(cat)}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all ${
-              selectedCluster === c.id
+              selectedCluster === cat
                 ? 'bg-blue-600 text-white shadow-xs'
-                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'
             }`}
           >
-            {c.name} <span className="opacity-75 text-[10px] ml-1">({c.count.toLocaleString()})</span>
+            {cat} ({cat === 'All' ? complaints.length : complaints.filter(c => c.category === cat).length})
           </button>
         ))}
       </div>
 
-      {/* Complaint Grid Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {complaints.map((cmp) => (
-          <div
-            key={cmp.id}
-            className="bg-white border border-slate-200 rounded-2xl p-5 shadow-card hover:border-blue-300 transition-all flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-start justify-between">
-                <span className="text-[10px] font-mono font-bold text-slate-400">{cmp.id}</span>
-                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
-                  cmp.severity === 'Critical'
-                    ? 'bg-red-100 text-red-700'
-                    : 'bg-orange-100 text-orange-700'
-                }`}>
-                  {cmp.severity} Severity
-                </span>
-              </div>
+      {/* Error Alert */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-700 text-xs font-semibold">
+          <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
 
-              <h3 className="text-xs font-extrabold text-slate-900 mt-1">{cmp.title}</h3>
-              <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">{cmp.description}</p>
+      {/* Loading State */}
+      {isLoading ? (
+        <div className="min-h-[300px] flex flex-col items-center justify-center space-y-3 bg-white border border-slate-200 rounded-2xl p-12">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+          <p className="text-xs font-bold text-slate-600">Loading Citizen Complaints from Database...</p>
+        </div>
+      ) : (
+        /* Complaints Feed List */
+        <div className="space-y-3">
+          {filteredComplaints.length === 0 ? (
+            <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-xs text-slate-500">
+              No citizen complaints found matching your query.
             </div>
+          ) : (
+            filteredComplaints.map((item) => (
+              <div key={item.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-card hover:border-slate-300 transition-all">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                      item.priority === 'High' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                    }`}>
+                      {item.priority} Priority
+                    </span>
+                    <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-blue-100">
+                      {item.category}
+                    </span>
+                  </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <div className="flex items-center gap-2">
-                <span className="flex items-center gap-1 text-[11px] font-medium text-slate-600">
-                  <MapPin className="w-3.5 h-3.5 text-blue-600" />
-                  {cmp.location}
-                </span>
-                <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded font-semibold text-slate-600">
-                  {cmp.category}
-                </span>
-              </div>
+                  <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>{item.location || 'Central City'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>{item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recent'}</span>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="flex items-center gap-1.5 text-slate-800 font-bold">
-                <ThumbsUp className="w-3.5 h-3.5 text-blue-600" />
-                <span>{cmp.upvotes} Citizens Supported</span>
+                <h3 className="font-extrabold text-slate-900 text-sm mt-2">{item.title}</h3>
+                <p className="text-xs text-slate-600 mt-1">{item.description}</p>
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
+            ))
+          )}
+        </div>
+      )}
+
     </div>
   );
 }

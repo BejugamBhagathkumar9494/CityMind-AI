@@ -11,7 +11,9 @@ import {
   ArrowUpRight,
   TrendingDown,
   CheckCircle2,
-  FileText
+  FileText,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import InfrastructureMap from './InfrastructureMap';
 import { fetchAnalytics, runAgentAnalysis, fetchInfrastructure } from '../services/api';
@@ -21,25 +23,47 @@ export default function Overview({ onNavigate, onOpenInspection }) {
   const [infraItems, setInfraItems] = useState([]);
   const [agentResult, setAgentResult] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchAnalytics().then(res => setAnalytics(res)).catch(() => {});
-    fetchInfrastructure().then(data => setInfraItems(data.slice(0, 3))).catch(() => {});
+    async function loadData() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const [anRes, infraRes] = await Promise.all([
+          fetchAnalytics(),
+          fetchInfrastructure()
+        ]);
+        setAnalytics(anRes);
+        setInfraItems(infraRes.slice(0, 5));
+      } catch (err) {
+        setError(err.message || 'Failed to load live city overview data from backend server.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
   }, []);
 
   const handleRunAnalysis = async () => {
     setIsAnalyzing(true);
-    const res = await runAgentAnalysis();
-    setAgentResult(res);
-    setIsAnalyzing(false);
+    try {
+      const res = await runAgentAnalysis();
+      setAgentResult(res);
+    } catch (err) {
+      alert(`Error running agent analysis: ${err.message}`);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const kpis = analytics?.kpis || {
     total_complaints: 0,
     infra_at_risk: 0,
-    budget_available_inr_cr: 10.00,
+    budget_available_inr_cr: 0,
     citizens_impacted: 0,
-    avg_resolution_time_days: 2.4
+    avg_resolution_time_days: 0
   };
 
   const topRecommendations = agentResult?.summary?.top_recommendation 
@@ -58,25 +82,48 @@ export default function Overview({ onNavigate, onOpenInspection }) {
         id: item.id,
         title: `${item.recommended_action || 'Repair'} — ${item.name}`,
         type: item.type,
-        risk_score: item.risk_score,
+        risk_score: item.risk_score || roundRiskScore(item.failure_probability),
         citizens: item.population_affected?.toLocaleString() || '10,000',
-        cost: `₹${item.repair_cost_inr} Cr`,
-        reason: `${item.name} in ${item.location} exhibits ${item.risk_score}% risk score with ${item.complaints_count || 0} citizen complaints.`
+        cost: item.repair_cost_inr ? `₹${item.repair_cost_inr} Cr` : '₹1.2 Cr',
+        reason: `${item.name} in ${item.location} exhibits high risk criteria requiring priority allocation.`
       }));
+
+  function roundRiskScore(prob) {
+    if (!prob) return 50;
+    return Math.round(prob * 100);
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[400px] flex flex-col items-center justify-center space-y-3 bg-white border border-slate-200 rounded-2xl p-12">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        <p className="text-xs font-bold text-slate-600">Fetching Live Smart City Telemetry...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-12">
+      
+      {/* Error Alert */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-700 text-xs font-semibold">
+          <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
       {/* Header Banner */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Bengaluru Smart City Command Center</h1>
-            <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-200">
+            <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-0.5 rounded-full border border-emerald-200">
               Live Network Active
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Real-time intelligence combining 12,842 complaints, XGBoost risk models, and 6 autonomous AI agents.
+            Real-time intelligence combining XGBoost risk models, live telemetry, and 6 autonomous AI agents.
           </p>
         </div>
 
@@ -94,7 +141,6 @@ export default function Overview({ onNavigate, onOpenInspection }) {
 
       {/* KPI CARDS GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* Card 1 */}
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-card hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Complaints</span>
@@ -103,13 +149,8 @@ export default function Overview({ onNavigate, onOpenInspection }) {
             </div>
           </div>
           <p className="text-2xl font-extrabold text-slate-900 mt-2">{kpis.total_complaints.toLocaleString()}</p>
-          <div className="flex items-center gap-1 text-[11px] text-emerald-600 font-semibold mt-1">
-            <TrendingDown className="w-3.5 h-3.5" />
-            <span>12% from last week</span>
-          </div>
         </div>
 
-        {/* Card 2 */}
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-card hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Infra at Risk</span>
@@ -118,13 +159,8 @@ export default function Overview({ onNavigate, onOpenInspection }) {
             </div>
           </div>
           <p className="text-2xl font-extrabold text-slate-900 mt-2">{kpis.infra_at_risk}</p>
-          <div className="flex items-center gap-1 text-[11px] text-red-600 font-semibold mt-1">
-            <AlertTriangle className="w-3.5 h-3.5" />
-            <span>18 Critical Assets</span>
-          </div>
         </div>
 
-        {/* Card 3 */}
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-card hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Budget Available</span>
@@ -133,12 +169,8 @@ export default function Overview({ onNavigate, onOpenInspection }) {
             </div>
           </div>
           <p className="text-2xl font-extrabold text-slate-900 mt-2">₹{kpis.budget_available_inr_cr.toFixed(2)} Cr</p>
-          <div className="flex items-center gap-1 text-[11px] text-blue-600 font-semibold mt-1">
-            <span>FY 2026-27 Allocation</span>
-          </div>
         </div>
 
-        {/* Card 4 */}
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-card hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Citizens Impacted</span>
@@ -146,117 +178,82 @@ export default function Overview({ onNavigate, onOpenInspection }) {
               <Users className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-slate-900 mt-2">{(kpis.citizens_impacted / 100000).toFixed(2)} Lakh</p>
-          <div className="flex items-center gap-1 text-[11px] text-emerald-600 font-semibold mt-1">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>84% Reach Protected</span>
-          </div>
+          <p className="text-2xl font-extrabold text-slate-900 mt-2">{kpis.citizens_impacted.toLocaleString()}</p>
         </div>
 
-        {/* Card 5 */}
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-card hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Avg Resolution</span>
-            <div className="p-2 rounded-lg bg-purple-50 text-purple-600">
+            <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
               <Clock className="w-4 h-4" />
             </div>
           </div>
           <p className="text-2xl font-extrabold text-slate-900 mt-2">{kpis.avg_resolution_time_days} days</p>
-          <div className="flex items-center gap-1 text-[11px] text-purple-600 font-semibold mt-1">
-            <span>-0.8 days vs benchmark</span>
-          </div>
         </div>
       </div>
 
-      {/* MAP & AI RECOMMENDATIONS SPLIT */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left 7 Columns: Interactive Map Preview */}
-        <div className="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-5 shadow-card flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-base font-bold text-slate-900">City Infrastructure Risk Map</h2>
-              <p className="text-xs text-slate-500">GIS geographic view color-coded by failure probability score.</p>
-            </div>
-            <button
-              onClick={() => onNavigate('infrastructure')}
-              className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
-            >
-              <span>Full Map View</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </button>
+      {/* TOP AI PRIORITIZATION RECOMMENDATIONS */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-blue-600" />
+            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Top Recommended Actions (XGBoost + RAG)</h2>
           </div>
-
-          <div className="h-[380px] rounded-xl overflow-hidden border border-slate-200 relative">
-            <InfrastructureMap height="380px" onSelectAsset={onOpenInspection} />
-          </div>
+          <button 
+            onClick={() => onNavigate('agents')}
+            className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+          >
+            <span>View All Agent Recommendations</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
         </div>
 
-        {/* Right 5 Columns: Top AI Recommendations */}
-        <div className="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-5 shadow-card flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-blue-100 text-blue-700">
-                  <Sparkles className="w-4 h-4" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {topRecommendations.map((item) => (
+            <div key={item.id} className="border border-slate-200 rounded-xl p-4 hover:border-blue-400 transition-all bg-slate-50/50 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="bg-red-100 text-red-700 font-bold text-[10px] px-2 py-0.5 rounded-md">
+                    Risk Score: {item.risk_score}%
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-500">{item.type}</span>
                 </div>
-                <h2 className="text-base font-bold text-slate-900">Top AI Recommendations</h2>
+                <h3 className="font-extrabold text-slate-900 text-sm">{item.title}</h3>
+                <p className="text-xs text-slate-600 mt-2 leading-relaxed">{item.reason}</p>
               </div>
-              <button
-                onClick={() => onNavigate('agents')}
-                className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
-              >
-                <span>Agent Workflow</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
 
-            <div className="space-y-3">
-              {topRecommendations.map((rec) => (
-                <div
-                  key={rec.rank}
-                  className="p-3.5 rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-xs transition-all bg-slate-50/50"
+              <div className="mt-4 pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                <span className="font-bold text-slate-900">{item.cost}</span>
+                <button
+                  onClick={() => onOpenInspection && onOpenInspection(item.id)}
+                  className="text-blue-600 hover:text-blue-700 font-bold text-xs flex items-center gap-1"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-extrabold flex items-center justify-center">
-                        #{rec.rank}
-                      </span>
-                      <h3 className="text-xs font-bold text-slate-900">{rec.title}</h3>
-                    </div>
-                    <span className="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      Risk {rec.risk_score}%
-                    </span>
-                  </div>
-
-                  <p className="text-[11px] text-slate-600 mt-1.5 leading-snug">{rec.reason}</p>
-
-                  <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                    <span>Reach: <strong className="text-slate-800">{rec.citizens}</strong></span>
-                    <span>Cost: <strong className="text-slate-800">{rec.cost}</strong></span>
-                    <button
-                      onClick={() => onNavigate('documents')}
-                      className="text-blue-600 font-semibold hover:underline flex items-center gap-0.5"
-                    >
-                      <span>Why? (RAG)</span>
-                      <FileText className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                  <span>Inspect Asset</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-[11px] text-slate-400">Powered by Decision Agent & FAISS Policy RAG</span>
-            <button
-              onClick={() => onNavigate('budget')}
-              className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
-            >
-              Optimize Budget (₹10 Cr)
-            </button>
-          </div>
+          ))}
         </div>
       </div>
+
+      {/* MAP PREVIEW COMPONENT */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Live GIS Map Network</h2>
+          <button
+            onClick={() => onNavigate('map')}
+            className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+          >
+            <span>Full Map View</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        <div className="h-[380px] rounded-xl overflow-hidden border border-slate-200">
+          <InfrastructureMap />
+        </div>
+      </div>
+
     </div>
   );
 }
