@@ -54,9 +54,7 @@ export default function AuthPage({ onLoginSuccess, onBackToLanding }) {
         isRegister: view === 'register'
       });
 
-      if (rememberMe) {
-        localStorage.setItem('citymind_user', JSON.stringify(userData));
-      }
+      localStorage.setItem('citymind_user', JSON.stringify(userData));
       setIsLoading(false);
       onLoginSuccess(userData);
     } catch (err) {

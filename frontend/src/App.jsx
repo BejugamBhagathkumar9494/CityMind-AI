@@ -25,19 +25,27 @@ import DepartmentModule from './components/DepartmentModule';
 import { signOutUser } from './services/supabaseClient';
 
 export default function App() {
-  const [viewMode, setViewMode] = useState('dashboard'); // 'landing' | 'dashboard' | 'auth'
-  const [activeTab, setActiveTab] = useState('overview');
-  const [selectedCity, setSelectedCity] = useState('bengaluru');
-  
   // Auth state persistent session
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('citymind_user');
-      return saved ? JSON.parse(saved) : { name: 'Admin Officer', email: 'admin@citymind.ai', role: 'City Admin Officer' };
+      return saved ? JSON.parse(saved) : null;
     } catch (e) {
-      return { name: 'Admin Officer', email: 'admin@citymind.ai', role: 'City Admin Officer' };
+      return null;
     }
   });
+
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem('citymind_user');
+      return saved ? 'dashboard' : 'landing';
+    } catch (e) {
+      return 'landing';
+    }
+  });
+
+  const [activeTab, setActiveTab] = useState('overview');
+  const [selectedCity, setSelectedCity] = useState('bengaluru');
 
   const handleLogout = async () => {
     try {
