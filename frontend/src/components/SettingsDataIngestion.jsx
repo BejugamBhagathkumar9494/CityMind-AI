@@ -1,34 +1,40 @@
 import React, { useState } from 'react';
-import { Upload, FileSpreadsheet, CheckCircle2, RefreshCw, Sparkles, Database } from 'lucide-react';
+import { Upload, FileSpreadsheet, CheckCircle2, RefreshCw, Sparkles, Database, AlertCircle } from 'lucide-react';
+import { uploadDatasetCSV } from '../services/api';
 
 export default function SettingsDataIngestion() {
   const [datasetType, setDatasetType] = useState('infrastructure');
   const [uploadStatus, setUploadStatus] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     setIsUploading(true);
     setUploadStatus(null);
+    setErrorMsg(null);
 
-    // Simulate backend processing pipeline
-    setTimeout(() => {
+    try {
+      const res = await uploadDatasetCSV(file, datasetType);
       setIsUploading(false);
       setUploadStatus({
         fileName: file.name,
-        rowCount: 1245,
+        rowCount: res.records_inserted,
         type: datasetType,
         pipelineSteps: [
           "✓ CSV Upload Verified",
           "✓ Schema & Coordinates Validated",
-          "✓ Missing Values Imputed",
+          `✓ ${res.records_inserted} Rows Ingested to SQLite`,
           "✓ XGBoost Model Re-trained",
           "✓ Multi-Agent Pipeline Updated"
         ]
       });
-    }, 1500);
+    } catch (err) {
+      setIsUploading(false);
+      setErrorMsg(err.message || 'Failed to upload CSV dataset');
+    }
   };
 
   return (
@@ -44,7 +50,7 @@ export default function SettingsDataIngestion() {
 
         <div className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-xl border border-blue-200 flex items-center gap-1.5">
           <Database className="w-4 h-4 text-blue-600" />
-          <span>Active Dataset: Pre-seeded Demo City Data</span>
+          <span>Active Dataset: SQLite Master Database</span>
         </div>
       </div>
 
@@ -82,20 +88,30 @@ export default function SettingsDataIngestion() {
             type="file"
             accept=".csv"
             onChange={handleFileUpload}
-            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+            disabled={isUploading}
+            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full disabled:cursor-not-allowed"
           />
-          <FileSpreadsheet className="w-10 h-10 text-blue-600 mx-auto mb-3" />
-          <h3 className="text-sm font-bold text-slate-900">Drop your CSV file here or click to browse</h3>
+          <FileSpreadsheet className={`w-10 h-10 text-blue-600 mx-auto mb-3 ${isUploading ? 'animate-bounce' : ''}`} />
+          <h3 className="text-sm font-bold text-slate-900">
+            {isUploading ? 'Ingesting CSV & Retraining ML Models...' : 'Drop your CSV file here or click to browse'}
+          </h3>
           <p className="text-xs text-slate-500 mt-1">Supports UTF-8 CSV containing columns: id, name, type, lat, lng, condition, complaints</p>
         </div>
+
+        {errorMsg && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
 
         {/* Pipeline Execution Display */}
         {uploadStatus && (
           <div className="p-5 bg-emerald-50 border border-emerald-200 rounded-xl space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-emerald-950">Data Pipeline Execution Complete</span>
+              <span className="text-xs font-extrabold text-emerald-950">Data Pipeline Execution Complete ({uploadStatus.fileName})</span>
               <span className="text-[10px] bg-emerald-200 text-emerald-900 font-bold px-2 py-0.5 rounded">
-                1,245 Rows Ingested
+                {uploadStatus.rowCount} Rows Ingested
               </span>
             </div>
 

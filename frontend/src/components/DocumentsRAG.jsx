@@ -1,24 +1,55 @@
-import React, { useState } from 'react';
-import { FolderGit2, Search, FileText, Upload, Sparkles, CheckCircle2, BookOpen } from 'lucide-react';
-import { queryRAG } from '../services/api';
+import React, { useState, useEffect, useRef } from 'react';
+import { FolderGit2, Search, FileText, Upload, Sparkles, CheckCircle2, BookOpen, AlertCircle } from 'lucide-react';
+import { queryRAG, fetchDocuments, uploadPolicyDocument } from '../services/api';
 
 export default function DocumentsRAG() {
   const [query, setQuery] = useState("Why did CityMind recommend repairing MG Road flyover first?");
   const [ragResult, setRagResult] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [docsList, setDocsList] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const loadDocuments = () => {
+    fetchDocuments().then(res => setDocsList(res)).catch(() => {});
+  };
+
+  useEffect(() => {
+    loadDocuments();
+  }, []);
 
   const handleSearch = async (e) => {
     if (e) e.preventDefault();
     setIsSearching(true);
-    const res = await queryRAG(query);
-    setRagResult(res);
+    try {
+      const res = await queryRAG(query);
+      setRagResult(res);
+    } catch (err) {
+      console.error(err);
+    }
     setIsSearching(false);
   };
 
-  const policyDocs = [
-    { id: "DOC-POL-001", title: "Municipal Road Infrastructure Maintenance Policy 2024", category: "Roads Policy", chunks: 4 },
-    { id: "DOC-POL-002", title: "Smart City Water Supply & Sanitation Standards", category: "Water Guidelines", chunks: 3 },
-    { id: "DOC-POL-003", title: "Urban Power Grid Resilience & Critical Backup Guidelines", category: "Energy Regulations", chunks: 5 }
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const title = file.name.replace(/\.[^/.]+$/, "");
+      await uploadPolicyDocument(title, "Uploaded Guidelines", file);
+      loadDocuments();
+      alert(`Policy document '${title}' uploaded and indexed into FAISS vector store!`);
+    } catch (err) {
+      alert(`Upload failed: ${err.message}`);
+    }
+    setIsUploading(false);
+  };
+
+  const policyDocs = docsList.length ? docsList : [
+    { id: "DOC-POL-001", title: "Municipal Road Infrastructure Maintenance Policy 2024", category: "Roads Policy", chunk_count: 4 },
+    { id: "DOC-POL-002", title: "Smart City Water Supply & Sanitation Standards", category: "Water Guidelines", chunk_count: 3 },
+    { id: "DOC-POL-003", title: "Urban Power Grid Resilience & Critical Backup Guidelines", category: "Energy Regulations", chunk_count: 5 }
   ];
 
   return (
@@ -32,13 +63,23 @@ export default function DocumentsRAG() {
           </p>
         </div>
 
-        <button
-          onClick={() => alert("Upload Policy PDF feature ready. Ingesting into FAISS vector store...")}
-          className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-xs transition-colors shrink-0"
-        >
-          <Upload className="w-4 h-4 text-blue-600" />
-          <span>Upload Municipal Policy PDF</span>
-        </button>
+        <div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            className="hidden"
+            accept=".pdf,.txt,.md"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-xs transition-colors shrink-0 disabled:opacity-50"
+          >
+            <Upload className={`w-4 h-4 text-blue-600 ${isUploading ? 'animate-spin' : ''}`} />
+            <span>{isUploading ? 'Indexing PDF...' : 'Upload Municipal Policy PDF'}</span>
+          </button>
+        </div>
       </div>
 
       {/* RAG QUERY SEARCH BAR */}
@@ -122,7 +163,7 @@ export default function DocumentsRAG() {
                 <h4 className="text-xs font-bold text-slate-900 mt-0.5">{doc.title}</h4>
                 <div className="flex items-center gap-2 mt-2 text-[10px] text-slate-500">
                   <span className="bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-semibold">{doc.category}</span>
-                  <span>{doc.chunks} Embeddings</span>
+                  <span>{doc.chunk_count || 3} Embeddings</span>
                 </div>
               </div>
             </div>

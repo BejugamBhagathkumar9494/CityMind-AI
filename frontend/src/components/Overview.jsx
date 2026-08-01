@@ -14,15 +14,17 @@ import {
   FileText
 } from 'lucide-react';
 import InfrastructureMap from './InfrastructureMap';
-import { fetchAnalytics, runAgentAnalysis } from '../services/api';
+import { fetchAnalytics, runAgentAnalysis, fetchInfrastructure } from '../services/api';
 
 export default function Overview({ onNavigate, onOpenInspection }) {
   const [analytics, setAnalytics] = useState(null);
+  const [infraItems, setInfraItems] = useState([]);
   const [agentResult, setAgentResult] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   useEffect(() => {
-    fetchAnalytics().then(res => setAnalytics(res));
+    fetchAnalytics().then(res => setAnalytics(res)).catch(() => {});
+    fetchInfrastructure().then(data => setInfraItems(data.slice(0, 3))).catch(() => {});
   }, []);
 
   const handleRunAnalysis = async () => {
@@ -33,51 +35,34 @@ export default function Overview({ onNavigate, onOpenInspection }) {
   };
 
   const kpis = analytics?.kpis || {
-    total_complaints: 12842,
-    infra_at_risk: 152,
+    total_complaints: 0,
+    infra_at_risk: 0,
     budget_available_inr_cr: 10.00,
-    citizens_impacted: 243000,
+    citizens_impacted: 0,
     avg_resolution_time_days: 2.4
   };
 
-  const topRecommendations = [
-    {
-      rank: 1,
-      id: "INF-RD-1024",
-      title: "Repair Road — MG Road Stretch",
-      type: "Road",
-      risk: "Critical",
-      risk_score: 92.5,
-      citizens: "35,000",
-      cost: "₹1.25 Cr",
-      confidence: "94%",
-      reason: "Arterial corridor exhibits 87% failure probability with 482 citizen complaints blocking hospital route."
-    },
-    {
-      rank: 2,
-      id: "INF-WT-8812",
-      title: "Fix Water Pipeline — Sector 12",
-      type: "Water",
-      risk: "High",
-      risk_score: 84.0,
-      citizens: "28,000",
-      cost: "₹0.85 Cr",
-      confidence: "91%",
-      reason: "Cast iron trunk line pipe joints degraded with 319 contamination complaints in 48 hours."
-    },
-    {
-      rank: 3,
-      id: "INF-CF-9011",
-      title: "Hospital Backup Power Feed Upgrade",
-      type: "Critical Facility",
-      risk: "Critical",
-      risk_score: 89.0,
-      citizens: "18,000",
-      cost: "₹0.45 Cr",
-      confidence: "96%",
-      reason: "Primary feeder insulation failure risks power drop for Level-1 Trauma Hospital."
-    }
-  ];
+  const topRecommendations = agentResult?.summary?.top_recommendation 
+    ? [{
+        rank: 1,
+        id: agentResult.summary.top_recommendation.asset_id,
+        title: agentResult.summary.top_recommendation.title,
+        type: agentResult.summary.top_recommendation.type,
+        risk_score: agentResult.summary.top_recommendation.risk_score,
+        citizens: agentResult.summary.top_recommendation.citizens_impacted?.toLocaleString() || '10,000',
+        cost: agentResult.summary.top_recommendation.estimated_cost_inr,
+        reason: agentResult.summary.top_recommendation.reasoning
+      }]
+    : infraItems.map((item, idx) => ({
+        rank: idx + 1,
+        id: item.id,
+        title: `${item.recommended_action || 'Repair'} — ${item.name}`,
+        type: item.type,
+        risk_score: item.risk_score,
+        citizens: item.population_affected?.toLocaleString() || '10,000',
+        cost: `₹${item.repair_cost_inr} Cr`,
+        reason: `${item.name} in ${item.location} exhibits ${item.risk_score}% risk score with ${item.complaints_count || 0} citizen complaints.`
+      }));
 
   return (
     <div className="space-y-6 pb-12">

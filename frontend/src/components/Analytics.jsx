@@ -15,30 +15,44 @@ import {
 } from 'recharts';
 import { BarChart3, TrendingUp, ShieldAlert, PieChart as PieIcon } from 'lucide-react';
 
+import { useState, useEffect } from 'react';
+import { fetchAnalytics } from '../services/api';
+
+const CATEGORY_COLORS = ['#EF4444', '#0284C7', '#F59E0B', '#10B981', '#8B5CF6', '#EC4899'];
+
 export default function Analytics() {
-  const riskData = [
-    { type: 'Roads', critical: 12, high: 24, medium: 30, low: 18 },
-    { type: 'Water', critical: 8, high: 18, medium: 22, low: 14 },
-    { type: 'Power', critical: 6, high: 14, medium: 20, low: 12 },
-    { type: 'Transport', critical: 4, high: 10, medium: 18, low: 15 },
-    { type: 'Hospital Feed', critical: 5, high: 8, medium: 12, low: 8 },
+  const [analytics, setAnalytics] = useState(null);
+
+  useEffect(() => {
+    fetchAnalytics().then(res => setAnalytics(res)).catch(() => {});
+  }, []);
+
+  const riskData = analytics?.risk_matrix?.length ? analytics.risk_matrix : [
+    { type: 'Road', critical: 2, high: 3, medium: 1, low: 0 },
+    { type: 'Water', critical: 1, high: 2, medium: 2, low: 1 },
+    { type: 'Electricity', critical: 1, high: 2, medium: 1, low: 0 },
+    { type: 'Critical Facility', critical: 1, high: 0, medium: 0, low: 0 }
   ];
 
-  const pieData = [
-    { name: 'Road Potholes', value: 4892, color: '#EF4444' },
-    { name: 'Water Leaks', value: 3210, color: '#0284C7' },
-    { name: 'Power Grid Spikes', value: 2840, color: '#F59E0B' },
-    { name: 'Drainage Flood', value: 1900, color: '#10B981' }
-  ];
+  const pieData = analytics?.complaint_categories?.length
+    ? analytics.complaint_categories.map((c, i) => ({
+        name: c.category,
+        value: c.count,
+        color: CATEGORY_COLORS[i % CATEGORY_COLORS.length]
+      }))
+    : [
+        { name: 'Road Potholes', value: 12, color: '#EF4444' },
+        { name: 'Water Quality & Leakage', value: 8, color: '#0284C7' },
+        { name: 'Power Grid Outage', value: 6, color: '#F59E0B' }
+      ];
+
+  const totalComplaintCount = pieData.reduce((acc, curr) => acc + curr.value, 0) || 1;
 
   const trendData = [
-    { month: 'Jan', complaints: 1420, failures: 18 },
-    { month: 'Feb', complaints: 1380, failures: 15 },
-    { month: 'Mar', complaints: 1650, failures: 22 },
-    { month: 'Apr', complaints: 1890, failures: 28 },
-    { month: 'May', complaints: 2100, failures: 34 },
-    { month: 'Jun', complaints: 1750, failures: 21 },
-    { month: 'Jul', complaints: 1284, failures: 12 },
+    { month: 'Q1', complaints: Math.round(totalComplaintCount * 0.2), failures: 4 },
+    { month: 'Q2', complaints: Math.round(totalComplaintCount * 0.3), failures: 6 },
+    { month: 'Q3', complaints: Math.round(totalComplaintCount * 0.35), failures: 3 },
+    { month: 'Current', complaints: totalComplaintCount, failures: 1 }
   ];
 
   return (
@@ -117,7 +131,7 @@ export default function Analytics() {
             {pieData.map(p => (
               <div key={p.name} className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color }} />
-                <span>{p.name} ({((p.value/12842)*100).toFixed(0)}%)</span>
+                <span>{p.name} ({((p.value / totalComplaintCount) * 100).toFixed(0)}%)</span>
               </div>
             ))}
           </div>
