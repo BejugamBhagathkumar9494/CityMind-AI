@@ -20,6 +20,7 @@ def init_db():
     CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
         email TEXT UNIQUE,
+        password_hash TEXT,
         name TEXT,
         role TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

@@ -16,15 +16,22 @@ export default function Topbar({
   setSelectedCity, 
   onOpenAuth, 
   onShowLanding,
-  onStartDemo 
+  onStartDemo,
+  user,
+  onLogout
 }) {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const cities = [
     { id: 'bengaluru', name: 'Bengaluru Metro Region', code: 'BLR' },
     { id: 'mumbai', name: 'Mumbai Metropolitan Area', code: 'BOM' },
     { id: 'delhi', name: 'Delhi National Capital Region', code: 'DEL' }
   ];
+
+  const initials = user?.name 
+    ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() 
+    : 'AO';
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-20 shadow-xs">
@@ -115,19 +122,46 @@ export default function Topbar({
           )}
         </div>
 
-        {/* Profile Avatar / Auth */}
-        <button
-          onClick={onOpenAuth}
-          className="flex items-center space-x-2 border border-slate-200 rounded-lg px-2.5 py-1.5 hover:bg-slate-50 transition-colors"
-        >
-          <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold">
-            AD
-          </div>
-          <div className="text-left hidden sm:block">
-            <p className="text-xs font-semibold text-slate-900 leading-tight">Admin Officer</p>
-            <p className="text-[10px] text-slate-500">City Authority</p>
-          </div>
-        </button>
+        {/* Profile Avatar / Auth Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="flex items-center space-x-2 border border-slate-200 rounded-lg px-2.5 py-1.5 hover:bg-slate-50 transition-colors"
+          >
+            <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
+              {initials}
+            </div>
+            <div className="text-left hidden sm:block">
+              <p className="text-xs font-semibold text-slate-900 leading-tight">{user?.name || 'Admin Officer'}</p>
+              <p className="text-[10px] text-blue-600 font-medium">{user?.role || 'City Admin Officer'}</p>
+            </div>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
+          </button>
+
+          {showUserMenu && (
+            <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-xl p-2 z-50 text-xs">
+              <div className="p-2 border-b border-slate-100">
+                <p className="font-bold text-slate-900">{user?.name || 'Admin Officer'}</p>
+                <p className="text-[11px] text-slate-500">{user?.email || 'admin@citymind.ai'}</p>
+                <span className="inline-block mt-1 px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md text-[10px] font-semibold">
+                  {user?.role || 'City Admin Officer'}
+                </span>
+              </div>
+              <button
+                onClick={() => { setShowUserMenu(false); onOpenAuth(); }}
+                className="w-full text-left px-2 py-1.5 mt-1 rounded-lg hover:bg-slate-50 text-slate-700 font-medium"
+              >
+                Switch Account / Sign In
+              </button>
+              <button
+                onClick={() => { setShowUserMenu(false); onLogout(); }}
+                className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-red-50 text-red-600 font-medium"
+              >
+                Sign Out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

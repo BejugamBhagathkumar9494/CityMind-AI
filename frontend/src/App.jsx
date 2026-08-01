@@ -15,15 +15,29 @@ import Alerts from './components/Alerts';
 import SettingsDataIngestion from './components/SettingsDataIngestion';
 import LandingPage from './components/LandingPage';
 import AuthModal from './components/AuthModal';
+import { signOutUser } from './services/supabaseClient';
 
 export default function App() {
   const [viewMode, setViewMode] = useState('dashboard'); // 'landing' | 'dashboard'
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedCity, setSelectedCity] = useState('bengaluru');
   
-  // Auth modal
+  // Auth state persistent session
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [user, setUser] = useState({ name: 'Admin Officer', email: 'admin@citymind.ai' });
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('citymind_user');
+      return saved ? JSON.parse(saved) : { name: 'Admin Officer', email: 'admin@citymind.ai', role: 'City Admin Officer' };
+    } catch (e) {
+      return { name: 'Admin Officer', email: 'admin@citymind.ai', role: 'City Admin Officer' };
+    }
+  });
+
+  const handleLogout = async () => {
+    await signOutUser();
+    setUser(null);
+    setIsAuthOpen(true);
+  };
 
   // 3-Minute Hackathon Demo Mode
   const [isDemoActive, setIsDemoActive] = useState(true);
@@ -115,6 +129,8 @@ export default function App() {
             setIsDemoActive(true);
             setDemoStep(0);
           }}
+          user={user}
+          onLogout={handleLogout}
         />
 
         {/* Hackathon Demo Walkthrough Banner */}
