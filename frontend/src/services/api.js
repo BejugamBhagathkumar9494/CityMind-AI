@@ -205,11 +205,28 @@ export async function askCityAssistant(query) {
 }
 
 export async function uploadDatasetPipeline(formData) {
-  const res = await fetch(`${API_BASE}/settings/upload-dataset-pipeline`, {
-    method: 'POST',
-    body: formData
-  });
-  if (!res.ok) throw new Error(`Pipeline execution failed: ${res.statusText}`);
-  const data = await res.json();
-  return data.summary;
+  try {
+    const res = await fetch(`${API_BASE}/settings/upload-dataset-pipeline`, {
+      method: 'POST',
+      body: formData
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data.summary;
+    }
+    const errJson = await res.json().catch(() => ({}));
+    throw new Error(errJson.detail || `Pipeline execution failed with status: ${res.statusText}`);
+  } catch (e) {
+    console.warn("Primary upload-dataset-pipeline failed, trying relative endpoint fallback:", e);
+    const res = await fetch(`/api/settings/upload-dataset-pipeline`, {
+      method: 'POST',
+      body: formData
+    });
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.detail || `Pipeline execution failed: ${res.statusText}`);
+    }
+    const data = await res.json();
+    return data.summary;
+  }
 }

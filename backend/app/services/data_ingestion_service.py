@@ -21,7 +21,13 @@ class DataIngestionService:
         # 1. Read & Validate File
         ext = os.path.splitext(filename)[1].lower()
         if ext == '.csv':
-            df = pd.read_csv(file_path, low_memory=False)
+            try:
+                df = pd.read_csv(file_path, low_memory=False)
+            except Exception:
+                try:
+                    df = pd.read_csv(file_path, encoding='latin1', low_memory=False)
+                except Exception:
+                    df = pd.read_csv(file_path, encoding='utf-8', errors='ignore', low_memory=False)
         elif ext in ['.xlsx', '.xls']:
             df = pd.read_excel(file_path)
         elif ext == '.parquet':
@@ -33,9 +39,13 @@ class DataIngestionService:
         initial_cols = list(df.columns)
 
         # 2. Schema & Duplicate Detection
-        dup_mask = df.duplicated()
-        duplicates_removed_count = int(dup_mask.sum())
-        df_clean = df.drop_duplicates().copy()
+        try:
+            dup_mask = df.duplicated()
+            duplicates_removed_count = int(dup_mask.sum())
+            df_clean = df.drop_duplicates().copy()
+        except Exception:
+            duplicates_removed_count = 0
+            df_clean = df.copy()
 
         # 3. Clean & Normalize Data
         # Normalize Department Names
