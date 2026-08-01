@@ -11,19 +11,29 @@ import {
   Bell, 
   Settings,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Car,
+  Droplet,
+  Zap,
+  Bus,
+  Building2
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, badge: null },
-  { id: 'infrastructure', label: 'Infrastructure', icon: MapPin, badge: '152 Risk' },
-  { id: 'complaints', label: 'Complaints', icon: MessageSquareWarning, badge: '12.8k' },
+  { id: 'infrastructure', label: 'Infrastructure', icon: MapPin, badge: 'Risk' },
+  { id: 'roads', label: 'Road Damage', icon: Car, badge: 'Telemetry' },
+  { id: 'water', label: 'Water Leakage', icon: Droplet, badge: 'Acoustic' },
+  { id: 'energy', label: 'Power Outages', icon: Zap, badge: 'Grid' },
+  { id: 'transport', label: 'Public Transport', icon: Bus, badge: 'Mobility' },
+  { id: 'complaints', label: 'Complaints', icon: MessageSquareWarning, badge: 'NLP' },
   { id: 'agents', label: 'AI Agents', icon: Bot, badge: '6 Active', highlight: true },
-  { id: 'budget', label: 'Budget Planning', icon: PieChart, badge: '₹10 Cr' },
+  { id: 'budget', label: 'Budget Allocation', icon: PieChart, badge: 'ROI' },
+  { id: 'department', label: 'Departments', icon: Building2, badge: 'SLAs' },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, badge: null },
   { id: 'reports', label: 'Reports', icon: FileText, badge: null },
   { id: 'documents', label: 'Documents / RAG', icon: FolderGit2, badge: 'Policy' },
-  { id: 'alerts', label: 'Alerts', icon: Bell, badge: '4 New' },
+  { id: 'alerts', label: 'Alerts', icon: Bell, badge: 'Warnings' },
   { id: 'settings', label: 'Settings & Data', icon: Settings, badge: null },
 ];
 

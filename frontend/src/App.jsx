@@ -15,6 +15,11 @@ import Alerts from './components/Alerts';
 import SettingsDataIngestion from './components/SettingsDataIngestion';
 import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
+import RoadsModule from './components/RoadsModule';
+import WaterModule from './components/WaterModule';
+import EnergyModule from './components/EnergyModule';
+import TransportModule from './components/TransportModule';
+import DepartmentModule from './components/DepartmentModule';
 import { signOutUser } from './services/supabaseClient';
 
 export default function App() {
@@ -86,6 +91,16 @@ export default function App() {
             <InfrastructureTable onOpenInspection={(asset) => setInspectedAsset(asset)} />
           </div>
         );
+      case 'roads':
+        return <RoadsModule onOpenInspection={(asset) => setInspectedAsset(asset)} />;
+      case 'water':
+        return <WaterModule onOpenInspection={(asset) => setInspectedAsset(asset)} />;
+      case 'energy':
+        return <EnergyModule onOpenInspection={(asset) => setInspectedAsset(asset)} />;
+      case 'transport':
+        return <TransportModule onOpenInspection={(asset) => setInspectedAsset(asset)} />;
+      case 'department':
+        return <DepartmentModule />;
       case 'complaints':
         return <Complaints />;
       case 'agents':

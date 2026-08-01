@@ -121,3 +121,33 @@ export async function generateReportData() {
   }
   return await res.json();
 }
+
+export async function fetchRoadsTelemetry() {
+  const res = await fetch(`${API_BASE}/telemetry/roads`);
+  if (!res.ok) throw new Error(`Failed to fetch roads telemetry: ${res.statusText}`);
+  return await res.json();
+}
+
+export async function fetchWaterTelemetry() {
+  const res = await fetch(`${API_BASE}/telemetry/water`);
+  if (!res.ok) throw new Error(`Failed to fetch water telemetry: ${res.statusText}`);
+  return await res.json();
+}
+
+export async function fetchEnergyTelemetry() {
+  const res = await fetch(`${API_BASE}/telemetry/energy`);
+  if (!res.ok) throw new Error(`Failed to fetch energy telemetry: ${res.statusText}`);
+  return await res.json();
+}
+
+export async function fetchTransportTelemetry() {
+  const res = await fetch(`${API_BASE}/telemetry/transport`);
+  if (!res.ok) throw new Error(`Failed to fetch transport telemetry: ${res.statusText}`);
+  return await res.json();
+}
+
+export async function fetchDepartmentTelemetry() {
+  const res = await fetch(`${API_BASE}/telemetry/departments`);
+  if (!res.ok) throw new Error(`Failed to fetch department telemetry: ${res.statusText}`);
+  return await res.json();
+}
