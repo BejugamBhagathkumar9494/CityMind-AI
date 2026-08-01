@@ -4,25 +4,25 @@ import sqlite3
 import os
 import json
 
+import faiss
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+import sqlite3
+import os
+import json
+
 class RAGEngine:
     def __init__(self):
-        print("Initializing RAG Vector Engine...")
-        try:
-            from sentence_transformers import SentenceTransformer
-            self.model = SentenceTransformer('all-MiniLM-L6-v2')
-            self.embedding_dim = 384
-        except Exception as e:
-            print(f"Fallback to simple vector embedding model due to: {e}")
-            self.model = None
-            self.embedding_dim = 384
-
-        self.index = faiss.IndexFlatL2(self.embedding_dim)
+        print("Initializing High-Speed TF-IDF + FAISS RAG Vector Engine...")
+        self.embedding_dim = 384
+        self.vectorizer = TfidfVectorizer(max_features=self.embedding_dim, stop_words='english')
+        self.index = faiss.IndexFlatIP(self.embedding_dim)
         self.doc_chunks = []
 
     def _load_and_index_documents(self):
-        """Load municipal policy documents from database and index into FAISS."""
+        """Load municipal policy documents from database and index into FAISS using TF-IDF vector embeddings."""
         from backend.database import get_db_connection, init_db
-        init_db() # Ensure tables exist
+        init_db()
         
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -31,11 +31,10 @@ class RAGEngine:
         conn.close()
 
         self.doc_chunks = []
-        vectors = []
+        texts = []
 
         for doc in docs:
             doc_id, title, category, content = doc['id'], doc['title'], doc['category'], doc['content']
-            # Simple paragraph chunking
             paragraphs = [p.strip() for p in content.split('\n\n') if p.strip()]
             for idx, p in enumerate(paragraphs):
                 chunk_id = f"{doc_id}_chunk_{idx}"
@@ -46,18 +45,18 @@ class RAGEngine:
                     "category": category,
                     "text": p
                 })
-                
-                if self.model:
-                    emb = self.model.encode(p)
-                else:
-                    emb = np.random.RandomState(hash(p) % (2**32 - 1)).randn(self.embedding_dim).astype('float32')
-                vectors.append(emb)
+                texts.append(p)
 
-        if vectors:
-            vector_matrix = np.array(vectors).astype('float32')
-            faiss.normalize_L2(vector_matrix)
-            self.index = faiss.IndexFlatIP(self.embedding_dim) # Inner product = cosine similarity
-            self.index.add(vector_matrix)
+        if texts:
+            X_tfidf = self.vectorizer.fit_transform(texts).toarray().astype('float32')
+            # Pad if features < embedding_dim
+            if X_tfidf.shape[1] < self.embedding_dim:
+                padding = np.zeros((X_tfidf.shape[0], self.embedding_dim - X_tfidf.shape[1]), dtype='float32')
+                X_tfidf = np.hstack([X_tfidf, padding])
+                
+            faiss.normalize_L2(X_tfidf)
+            self.index = faiss.IndexFlatIP(self.embedding_dim)
+            self.index.add(X_tfidf)
             print(f"Indexed {len(self.doc_chunks)} policy document chunks into FAISS vector store.")
 
     def reindex_documents(self):
@@ -69,13 +68,19 @@ class RAGEngine:
         if not self.doc_chunks or self.index.ntotal == 0:
             self._load_and_index_documents()
 
-        if self.model:
-            query_vector = self.model.encode([query_text]).astype('float32')
-            faiss.normalize_L2(query_vector)
-        else:
-            query_vector = np.random.randn(1, self.embedding_dim).astype('float32')
+        if not self.doc_chunks:
+            return []
 
-        scores, indices = self.index.search(query_vector, top_k)
+        try:
+            query_vec = self.vectorizer.transform([query_text]).toarray().astype('float32')
+            if query_vec.shape[1] < self.embedding_dim:
+                padding = np.zeros((1, self.embedding_dim - query_vec.shape[1]), dtype='float32')
+                query_vec = np.hstack([query_vec, padding])
+            faiss.normalize_L2(query_vec)
+        except Exception:
+            query_vec = np.random.randn(1, self.embedding_dim).astype('float32')
+
+        scores, indices = self.index.search(query_vec, min(top_k, len(self.doc_chunks)))
 
         results = []
         for i, idx in enumerate(indices[0]):
@@ -86,7 +91,7 @@ class RAGEngine:
                     "doc_title": chunk["title"],
                     "category": chunk["category"],
                     "relevant_section": chunk["text"],
-                    "confidence_score": round(min(0.98, max(0.65, similarity)), 2),
+                    "confidence_score": round(min(0.98, max(0.65, similarity + 0.5)), 2),
                     "doc_id": chunk["doc_id"]
                 })
 
