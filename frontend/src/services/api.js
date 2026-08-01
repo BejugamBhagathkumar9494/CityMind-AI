@@ -203,3 +203,13 @@ export async function askCityAssistant(query) {
     citations: ["Database Table: public.infrastructure", "Database Table: public.complaints"]
   };
 }
+
+export async function uploadDatasetPipeline(formData) {
+  const res = await fetch(`${API_BASE}/settings/upload-dataset-pipeline`, {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) throw new Error(`Pipeline execution failed: ${res.statusText}`);
+  const data = await res.json();
+  return data.summary;
+}

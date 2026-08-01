@@ -656,6 +656,51 @@ def ask_city_assistant(req: dict = Body(...)):
         "data": result
     }
 
+from fastapi.responses import StreamingResponse
+import asyncio
+from backend.app.services.data_ingestion_service import data_ingestion_service
+
+# -------------------------------------------------------------
+# REAL-TIME SERVER-SENT EVENTS (SSE) & PIPELINE ENDPOINTS
+# -------------------------------------------------------------
+@app.get("/api/events")
+async def sse_event_stream():
+    """Stream live real-time pipeline events and system updates to frontend clients."""
+    async def event_generator():
+        while True:
+            await asyncio.sleep(15)
+            yield f"data: {json.dumps({'event': 'ping', 'timestamp': time.time()})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+@app.post("/api/settings/upload-dataset-pipeline")
+async def process_dataset_pipeline(file: UploadFile = File(...), dataset_type: str = Form("general")):
+    """
+    Production-grade Automated Data Ingestion Pipeline.
+    Executes validation, cleaning, DB merge, targeted AI recomputation, and returns AI Impact Summary.
+    """
+    try:
+        temp_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../scratch"))
+        os.makedirs(temp_dir, exist_ok=True)
+        file_path = os.path.join(temp_dir, file.filename)
+
+        with open(file_path, "wb") as f:
+            f.write(await file.read())
+
+        ai_impact_summary = data_ingestion_service.process_uploaded_dataset(
+            file_path=file_path,
+            filename=file.filename,
+            uploader="Admin Officer"
+        )
+
+        return {
+            "status": "success",
+            "summary": ai_impact_summary
+        }
+    except Exception as e:
+        logger.error(f"Pipeline execution error: {e}")
+        raise HTTPException(status_code=400, detail=f"Pipeline error: {str(e)}")
+
 # Launch via Uvicorn if executed directly
 if __name__ == "__main__":
     import uvicorn
