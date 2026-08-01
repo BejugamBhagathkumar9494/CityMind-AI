@@ -28,8 +28,6 @@ export default function Overview({ onNavigate, onOpenInspection }) {
 
   useEffect(() => {
     async function loadData() {
-      setIsLoading(true);
-      setError(null);
       try {
         const [anRes, infraRes] = await Promise.all([
           fetchAnalytics(),
@@ -44,6 +42,8 @@ export default function Overview({ onNavigate, onOpenInspection }) {
       }
     }
     loadData();
+    const interval = setInterval(loadData, 10000); // Live poll DB every 10 seconds
+    return () => clearInterval(interval);
   }, []);
 
   const handleRunAnalysis = async () => {
