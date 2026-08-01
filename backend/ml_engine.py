@@ -1,9 +1,12 @@
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, HistGradientBoostingRegressor
 from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import TfidfVectorizer
-import xgboost as xgb
+try:
+    import xgboost as xgb
+except ImportError:
+    xgb = None
 import os
 import json
 
@@ -65,9 +68,14 @@ class MLEngine:
             })
             y = failure_prob
 
-        self.risk_model = xgb.XGBRegressor(n_estimators=60, max_depth=4, learning_rate=0.1)
-        self.risk_model.fit(X, y)
-        print(f"XGBoost Infrastructure Risk Model trained on {len(X)} records.")
+        if xgb is not None:
+            self.risk_model = xgb.XGBRegressor(n_estimators=60, max_depth=4, learning_rate=0.1)
+            self.risk_model.fit(X, y)
+            print(f"XGBoost Infrastructure Risk Model trained on {len(X)} records.")
+        else:
+            self.risk_model = HistGradientBoostingRegressor(max_iter=60, learning_rate=0.1)
+            self.risk_model.fit(X, y)
+            print(f"Gradient Boosting Infrastructure Risk Model (Fallback) trained on {len(X)} records.")
 
     def retrain_models(self):
         """Retrain XGBoost risk model and refresh vectorizers on fresh dataset."""
