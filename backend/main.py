@@ -607,6 +607,41 @@ def get_department_telemetry():
         "budgets": budgets
     }
 
+from backend.app.services.weather_service import weather_service
+
+# -------------------------------------------------------------
+# LIVE WEATHER & ML PREDICTION MODEL ENDPOINTS
+# -------------------------------------------------------------
+@app.get("/api/weather/live")
+def get_live_weather_telemetry():
+    return {
+        "status": "success",
+        "data": weather_service.get_live_weather()
+    }
+
+@app.get("/api/ml/models")
+def get_ml_models_metadata():
+    return {
+        "status": "success",
+        "models": ml_engine.get_model_feature_importances()
+    }
+
+@app.post("/api/ml/predict-all")
+def predict_all_city_risks(asset_data: dict = Body(...)):
+    weather = weather_service.get_live_weather()
+    infra_res = ml_engine.analyze_infrastructure_asset(asset_data)
+    water_res = ml_engine.analyze_water_network_asset(asset_data)
+    energy_res = ml_engine.analyze_energy_substation_asset(asset_data)
+    
+    return {
+        "status": "success",
+        "live_weather": weather,
+        "infrastructure_prediction": infra_res,
+        "water_prediction": water_res,
+        "energy_prediction": energy_res,
+        "model_importances": ml_engine.get_model_feature_importances()
+    }
+
 # Launch via Uvicorn if executed directly
 if __name__ == "__main__":
     import uvicorn

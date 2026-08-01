@@ -151,3 +151,17 @@ export async function fetchDepartmentTelemetry() {
   if (!res.ok) throw new Error(`Failed to fetch department telemetry: ${res.statusText}`);
   return await res.json();
 }
+
+export async function fetchLiveWeather() {
+  const res = await fetch(`${API_BASE}/weather/live`);
+  if (!res.ok) throw new Error(`Failed to fetch live weather telemetry: ${res.statusText}`);
+  const data = await res.json();
+  return data.data;
+}
+
+export async function fetchMLModels() {
+  const res = await fetch(`${API_BASE}/ml/models`);
+  if (!res.ok) throw new Error(`Failed to fetch ML model metadata: ${res.statusText}`);
+  const data = await res.json();
+  return data.models;
+}

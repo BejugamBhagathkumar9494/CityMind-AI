@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Bell, 
@@ -8,8 +8,11 @@ import {
   ChevronDown, 
   ExternalLink,
   ShieldAlert,
-  Sparkles
+  Sparkles,
+  CloudRain,
+  Sun
 } from 'lucide-react';
+import { fetchLiveWeather } from '../services/api';
 
 export default function Topbar({ 
   selectedCity, 
@@ -22,6 +25,11 @@ export default function Topbar({
 }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [weather, setWeather] = useState(null);
+
+  useEffect(() => {
+    fetchLiveWeather().then(res => setWeather(res)).catch(() => {});
+  }, []);
 
   const cities = [
     { id: 'bengaluru', name: 'Bengaluru Metro Region', code: 'BLR' },
@@ -77,6 +85,16 @@ export default function Topbar({
 
       {/* Right Actions */}
       <div className="flex items-center space-x-3">
+        
+        {/* Live Weather Telemetry Badge */}
+        {weather && (
+          <div className="hidden lg:flex items-center space-x-1.5 bg-blue-50/80 border border-blue-200/80 px-3 py-1.5 rounded-lg text-xs font-bold text-blue-900 shadow-xs">
+            <CloudRain className="w-3.5 h-3.5 text-blue-600 animate-pulse" />
+            <span>{weather.city}: {weather.temperature_celsius}°C</span>
+            <span className="text-[10px] text-blue-600 font-semibold">({weather.weather_condition})</span>
+          </div>
+        )}
+
         {/* Landing Page Link */}
         <button
           onClick={onShowLanding}
