@@ -184,13 +184,57 @@ class RAGQueryRequest(BaseModel):
 @app.post("/api/rag/query")
 def query_policy_docs(req: RAGQueryRequest = Body(...)):
     citations = rag_engine.query_policy(req.query)
-    explanation = f"Based on municipal policy documents, '{citations[0]['doc_title'] if citations else 'City Policy'}', the decision is justified due to high traffic volume, asset degradation thresholds, and public health impact."
+    doc_name = citations[0]['doc_title'] if citations else 'Municipal Policy Standard'
+    explanation = f"Based on '{doc_name}', the decision is justified due to statutory maintenance thresholds, critical risk factors, and citizen population impact."
     return {
         "status": "success",
         "query": req.query,
         "ai_explanation": explanation,
         "citations": citations
     }
+
+@app.get("/api/documents")
+def get_documents():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, title, category, chunk_count, uploaded_at FROM documents")
+    docs = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+    return {"status": "success", "data": docs}
+
+@app.post("/api/documents/upload")
+async def upload_policy_document(
+    title: str = Query(...),
+    category: str = Query(...),
+    file: UploadFile = File(...)
+):
+    try:
+        contents = await file.read()
+        text_content = contents.decode('utf-8', errors='ignore')
+        if not text_content.strip():
+            raise HTTPException(status_code=400, detail="Uploaded file is empty or could not be decoded.")
+
+        import uuid
+        doc_id = f"DOC-POL-{uuid.uuid4().hex[:6].upper()}"
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO documents (id, title, category, content, chunk_count) VALUES (?, ?, ?, ?, ?)",
+            (doc_id, title, category, text_content, len(text_content.split('\n\n')))
+        )
+        conn.commit()
+        conn.close()
+
+        rag_engine.reindex_documents()
+
+        return {
+            "status": "success",
+            "message": f"Successfully ingested policy document '{title}' into RAG vector index.",
+            "doc_id": doc_id
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to ingest policy document: {str(e)}")
 
 # ----------------------------
 # 6. OVERVIEW & ANALYTICS APIS
@@ -211,22 +255,34 @@ def get_analytics():
     
     cursor.execute("SELECT SUM(population_affected) FROM infrastructure")
     citizens_impacted = cursor.fetchone()[0] or 243000
-    
-    # Category chart data
-    cursor.execute("SELECT type, COUNT(*), AVG(risk_score) FROM infrastructure GROUP BY type")
-    type_stats = [{"type": r[0], "count": r[1], "avg_risk": round(r[2], 1)} for r in cursor.fetchall()]
-    
+
+    # Sector risk matrix breakdown
+    cursor.execute("""
+        SELECT type,
+            SUM(CASE WHEN risk_score >= 85 THEN 1 ELSE 0 END) as critical,
+            SUM(CASE WHEN risk_score >= 70 AND risk_score < 85 THEN 1 ELSE 0 END) as high,
+            SUM(CASE WHEN risk_score >= 50 AND risk_score < 70 THEN 1 ELSE 0 END) as medium,
+            SUM(CASE WHEN risk_score < 50 THEN 1 ELSE 0 END) as low
+        FROM infrastructure GROUP BY type
+    """)
+    risk_matrix = [dict(r) for r in cursor.fetchall()]
+
+    # Complaint category breakdown
+    cursor.execute("SELECT category, COUNT(*) as count FROM complaints GROUP BY category")
+    complaint_categories = [dict(r) for r in cursor.fetchall()]
+
     conn.close()
     
     return {
         "kpis": {
-            "total_complaints": total_complaints + 12834, # realistic benchmark scale
-            "infra_at_risk": infra_at_risk + 147,
+            "total_complaints": total_complaints,
+            "infra_at_risk": infra_at_risk,
             "budget_available_inr_cr": round(total_budget, 2),
             "citizens_impacted": citizens_impacted,
             "avg_resolution_time_days": 2.4
         },
-        "type_breakdown": type_stats
+        "risk_matrix": risk_matrix,
+        "complaint_categories": complaint_categories
     }
 
 # ----------------------------
@@ -247,14 +303,27 @@ def generate_report():
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM infrastructure ORDER BY risk_score DESC LIMIT 5")
     top_assets = [dict(r) for r in cursor.fetchall()]
+    
+    cursor.execute("SELECT COUNT(*) FROM complaints")
+    total_complaints = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM infrastructure WHERE risk_score >= 70.0")
+    infra_at_risk = cursor.fetchone()[0]
     conn.close()
     
+    top_name = top_assets[0]['name'] if top_assets else 'MG Road Flyover'
+    top_reach = top_assets[0]['population_affected'] if top_assets else 35000
+
     return {
         "status": "success",
         "title": "CityMind Executive Decision Intelligence Report",
         "generated_at": pd.Timestamp.now().isoformat(),
-        "summary": "CityMind AI analyzed 12,842 citizen complaints and 152 critical city assets. The top recommended action is immediate repair of MG Road Flyover to protect 35,000 citizens.",
-        "top_risk_assets": top_assets
+        "summary": f"CityMind AI analyzed {total_complaints:,} citizen complaints and {len(top_assets)} high-risk city assets. The top recommended action is immediate repair of {top_name} protecting {top_reach:,} citizens.",
+        "top_risk_assets": top_assets,
+        "kpis": {
+            "total_complaints": total_complaints,
+            "infra_at_risk": infra_at_risk
+        }
     }
 
 # ----------------------------
@@ -269,13 +338,80 @@ async def upload_csv_dataset(file: UploadFile = File(...), dataset_type: str = Q
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Parse and ingest
         records_inserted = len(df)
-        conn.close()
+        import uuid
         
+        if dataset_type == "infrastructure":
+            for idx, row in df.iterrows():
+                row_id = str(row.get('id', f"INF-CSV-{uuid.uuid4().hex[:6]}"))
+                name = str(row.get('name', f"City Asset {idx+1}"))
+                itype = str(row.get('type', 'Road'))
+                loc = str(row.get('location', 'Central Sector'))
+                lat = float(row.get('latitude', row.get('lat', 12.9716)))
+                lng = float(row.get('longitude', row.get('lng', 77.5946)))
+                cond = float(row.get('condition_rating', row.get('condition', 5.0)))
+                age = int(row.get('age_years', row.get('age', 10)))
+                risk = float(row.get('risk_score', row.get('risk', (10.0 - cond)*10.0)))
+                prob = float(row.get('failure_probability', risk / 100.0))
+                cmps = int(row.get('complaints_count', row.get('complaints', 25)))
+                pop = int(row.get('population_affected', row.get('population', 10000)))
+                cost = float(row.get('repair_cost_inr', row.get('cost', 1.0)))
+                prev_f = int(row.get('previous_failures', 1))
+                urgency = "Critical" if risk >= 85 else ("High" if risk >= 70 else "Medium")
+                status = "Pending Repair" if risk >= 75 else "Operational"
+                action = str(row.get('recommended_action', 'Inspect & reinforce structural integrity'))
+
+                cursor.execute("""
+                INSERT OR REPLACE INTO infrastructure (
+                    id, name, type, location, latitude, longitude, condition_rating,
+                    age_years, risk_score, failure_probability, complaints_count,
+                    population_affected, repair_cost_inr, previous_failures, urgency,
+                    status, recommended_action, last_inspected
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (row_id, name, itype, loc, lat, lng, cond, age, risk, prob, cmps, pop, cost, prev_f, urgency, status, action, "2026-08-01"))
+        
+        elif dataset_type == "complaints":
+            for idx, row in df.iterrows():
+                row_id = str(row.get('id', f"CMP-CSV-{uuid.uuid4().hex[:6]}"))
+                title = str(row.get('title', f"Citizen Issue #{idx+1}"))
+                cat = str(row.get('category', 'Road Potholes'))
+                desc = str(row.get('description', title))
+                loc = str(row.get('location', 'Metro Zone'))
+                lat = float(row.get('latitude', row.get('lat', 12.9716)))
+                lng = float(row.get('longitude', row.get('lng', 77.5946)))
+                sev = str(row.get('severity', 'High'))
+                upvotes = int(row.get('upvotes', 10))
+
+                cursor.execute("""
+                INSERT OR REPLACE INTO complaints (
+                    id, title, category, description, location, latitude, longitude,
+                    severity, status, citizen_name, upvotes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Open', 'Resident', ?)
+                """, (row_id, title, cat, desc, loc, lat, lng, sev, upvotes))
+
+        elif dataset_type == "budget":
+            for idx, row in df.iterrows():
+                row_id = str(row.get('id', f"BDG-CSV-{uuid.uuid4().hex[:6]}"))
+                dept = str(row.get('department', row.get('dept', f"Department {idx+1}")))
+                alloc = float(row.get('allocated_inr', row.get('allocated', 2.5)))
+                spent = float(row.get('spent_inr', row.get('spent', alloc * 0.7)))
+                prop = float(row.get('proposed_inr', row.get('proposed', alloc * 1.1)))
+
+                cursor.execute("""
+                INSERT OR REPLACE INTO budgets (id, department, allocated_inr, spent_inr, proposed_inr, fiscal_year)
+                VALUES (?, ?, ?, ?, ?, 'FY 2026-27')
+                """, (row_id, dept, alloc, spent, prop))
+
+        conn.commit()
+        conn.close()
+
+        # Retrain ML models on fresh dataset
+        ml_engine.retrain_models()
+
         return {
             "status": "success",
-            "message": f"Successfully ingested {records_inserted} rows into {dataset_type} dataset.",
+            "message": f"Successfully ingested {records_inserted} rows into {dataset_type} dataset. Retrained XGBoost and NLP engines.",
+            "records_inserted": records_inserted,
             "columns": list(df.columns)
         }
     except Exception as e:
