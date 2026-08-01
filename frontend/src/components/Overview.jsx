@@ -225,8 +225,8 @@ export default function Overview({ onNavigate, onOpenInspection }) {
               <div className="mt-4 pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs">
                 <span className="font-bold text-slate-900">{item.cost}</span>
                 <button
-                  onClick={() => onOpenInspection && onOpenInspection(item.id)}
-                  className="text-blue-600 hover:text-blue-700 font-bold text-xs flex items-center gap-1"
+                  onClick={() => onOpenInspection && onOpenInspection(item.id || 'INF-RD-1024')}
+                  className="bg-blue-50 hover:bg-blue-100 text-blue-700 font-extrabold text-xs px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors"
                 >
                   <span>Inspect Asset</span>
                   <ArrowUpRight className="w-3.5 h-3.5" />

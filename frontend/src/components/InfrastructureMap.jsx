@@ -47,6 +47,10 @@ function MapRecenter({ center }) {
   const map = useMap();
   useEffect(() => {
     map.setView(center, 12);
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 250);
+    return () => clearTimeout(timer);
   }, [center, map]);
   return null;
 }
@@ -57,6 +61,7 @@ export default function InfrastructureMap({ height = "600px", onSelectAsset, sel
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   const cityCenter = CITY_COORDINATES[selectedCity] || CITY_COORDINATES.bengaluru;
 
@@ -80,20 +85,24 @@ export default function InfrastructureMap({ height = "600px", onSelectAsset, sel
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       return (
-        a.id.toLowerCase().includes(term) ||
-        a.name.toLowerCase().includes(term) ||
-        a.location.toLowerCase().includes(term) ||
-        a.type.toLowerCase().includes(term)
+        (a.id || '').toLowerCase().includes(term) ||
+        (a.name || '').toLowerCase().includes(term) ||
+        (a.location || '').toLowerCase().includes(term) ||
+        (a.type || '').toLowerCase().includes(term)
       );
     }
     return true;
   });
 
+  const mapStyle = isFullScreen
+    ? { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 9998, borderRadius: 0 }
+    : { height };
+
   return (
-    <div className="relative w-full rounded-xl overflow-hidden border border-slate-200" style={{ height }}>
+    <div className={`relative w-full overflow-hidden border border-slate-200 shadow-lg ${isFullScreen ? 'fixed inset-0 z-[9998] bg-white' : 'rounded-xl'}`} style={mapStyle}>
       
       {/* GIS Control Overlay Toolbar */}
-      <div className="absolute top-3 left-3 right-3 z-[400] bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-xl p-3 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs font-semibold">
+      <div className="absolute top-3 left-3 right-3 z-[450] bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-xl p-3 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs font-semibold">
         
         {/* Department / Sector Filter Pills */}
         <div className="flex flex-wrap items-center gap-1.5">
@@ -114,16 +123,26 @@ export default function InfrastructureMap({ height = "600px", onSelectAsset, sel
           ))}
         </div>
 
-        {/* Live Map Search Input */}
-        <div className="relative w-full md:w-56">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search GIS markers..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-          />
+        {/* Right Action: Search & Full Screen Toggle */}
+        <div className="flex items-center space-x-2 w-full md:w-auto">
+          {/* Live Map Search Input */}
+          <div className="relative flex-1 md:w-52">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search GIS markers..."
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+            />
+          </div>
+
+          <button
+            onClick={() => setIsFullScreen(!isFullScreen)}
+            className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg shrink-0 transition-colors shadow-xs"
+          >
+            {isFullScreen ? 'Exit Full Screen' : 'Full Screen Map'}
+          </button>
         </div>
 
       </div>
