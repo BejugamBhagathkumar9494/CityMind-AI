@@ -14,16 +14,15 @@ import DocumentsRAG from './components/DocumentsRAG';
 import Alerts from './components/Alerts';
 import SettingsDataIngestion from './components/SettingsDataIngestion';
 import LandingPage from './components/LandingPage';
-import AuthModal from './components/AuthModal';
+import AuthPage from './components/AuthPage';
 import { signOutUser } from './services/supabaseClient';
 
 export default function App() {
-  const [viewMode, setViewMode] = useState('dashboard'); // 'landing' | 'dashboard'
+  const [viewMode, setViewMode] = useState('dashboard'); // 'landing' | 'dashboard' | 'auth'
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedCity, setSelectedCity] = useState('bengaluru');
   
   // Auth state persistent session
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('citymind_user');
@@ -36,7 +35,7 @@ export default function App() {
   const handleLogout = async () => {
     await signOutUser();
     setUser(null);
-    setIsAuthOpen(true);
+    setViewMode('auth');
   };
 
   // 3-Minute Hackathon Demo Mode
@@ -46,22 +45,25 @@ export default function App() {
   // Asset Inspection Drawer state
   const [inspectedAsset, setInspectedAsset] = useState(null);
 
+  // Strict Route Guard: If not authenticated OR in 'auth' view mode, render ONLY AuthPage outside dashboard layout
+  if (!user || viewMode === 'auth') {
+    return (
+      <AuthPage
+        onLoginSuccess={(u) => {
+          setUser(u);
+          setViewMode('dashboard');
+        }}
+        onBackToLanding={() => setViewMode('landing')}
+      />
+    );
+  }
+
   if (viewMode === 'landing') {
     return (
-      <>
-        <LandingPage
-          onExplore={() => setViewMode('dashboard')}
-          onOpenAuth={() => setIsAuthOpen(true)}
-        />
-        <AuthModal
-          isOpen={isAuthOpen}
-          onClose={() => setIsAuthOpen(false)}
-          onLoginSuccess={(u) => {
-            setUser(u);
-            setViewMode('dashboard');
-          }}
-        />
-      </>
+      <LandingPage
+        onExplore={() => setViewMode('dashboard')}
+        onOpenAuth={() => setViewMode('auth')}
+      />
     );
   }
 
