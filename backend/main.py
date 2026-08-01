@@ -141,6 +141,15 @@ def login_user(req: LoginRequest = Body(...)):
         }
     }
 
+from backend.app.services.infrastructure_service import infrastructure_service
+from backend.app.services.complaints_service import complaints_service
+from backend.app.services.budget_service import budget_service
+from backend.app.services.analytics_service import analytics_service
+from backend.app.services.roads_service import roads_service
+from backend.app.services.water_service import water_service
+from backend.app.services.energy_service import energy_service
+from backend.app.services.transport_service import transport_service
+
 # ----------------------------
 # 1. INFRASTRUCTURE & MAP APIS
 # ----------------------------
@@ -149,22 +158,7 @@ def get_all_infrastructure(
     type_filter: Optional[str] = Query(None),
     urgency_filter: Optional[str] = Query(None)
 ):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    query = "SELECT * FROM infrastructure WHERE 1=1"
-    params = []
-    
-    if type_filter and type_filter != "All":
-        query += " AND type = ?"
-        params.append(type_filter)
-    if urgency_filter and urgency_filter != "All":
-        query += " AND urgency = ?"
-        params.append(urgency_filter)
-        
-    cursor.execute(query, params)
-    rows = [dict(r) for r in cursor.fetchall()]
-    conn.close()
+    rows = infrastructure_service.get_all_assets(type_filter, urgency_filter)
     
     # Recalculate priority scores dynamically
     for row in rows:
