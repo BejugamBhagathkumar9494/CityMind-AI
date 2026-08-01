@@ -642,6 +642,20 @@ def predict_all_city_risks(asset_data: dict = Body(...)):
         "model_importances": ml_engine.get_model_feature_importances()
     }
 
+from backend.app.services.assistant_service import assistant_service
+
+# -------------------------------------------------------------
+# CITY AI ASSISTANT RAG QUERY ENDPOINT
+# -------------------------------------------------------------
+@app.post("/api/assistant/ask")
+def ask_city_assistant(req: dict = Body(...)):
+    user_query = req.get('query', 'What is the city health score?')
+    result = assistant_service.answer_city_query(user_query)
+    return {
+        "status": "success",
+        "data": result
+    }
+
 # Launch via Uvicorn if executed directly
 if __name__ == "__main__":
     import uvicorn

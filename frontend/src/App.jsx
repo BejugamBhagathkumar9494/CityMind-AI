@@ -15,6 +15,7 @@ import Alerts from './components/Alerts';
 import SettingsDataIngestion from './components/SettingsDataIngestion';
 import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
+import CityAssistantWidget from './components/CityAssistantWidget';
 import RoadsModule from './components/RoadsModule';
 import WaterModule from './components/WaterModule';
 import EnergyModule from './components/EnergyModule';
@@ -135,17 +136,15 @@ export default function App() {
         }}
       />
 
-      {/* Main Content Shell */}
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
+        {/* Topbar */}
         <Topbar
           selectedCity={selectedCity}
           setSelectedCity={setSelectedCity}
-          onOpenAuth={() => setIsAuthOpen(true)}
+          onOpenAuth={() => setViewMode('auth')}
           onShowLanding={() => setViewMode('landing')}
-          onStartDemo={() => {
-            setIsDemoActive(true);
-            setDemoStep(0);
-          }}
+          onStartDemo={() => setIsDemoActive(true)}
           user={user}
           onLogout={handleLogout}
         />
@@ -166,12 +165,8 @@ export default function App() {
         </main>
       </div>
 
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        onLoginSuccess={(u) => setUser(u)}
-      />
+      {/* Floating City AI Assistant Chat Widget */}
+      <CityAssistantWidget />
     </div>
   );
 }

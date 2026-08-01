@@ -165,3 +165,14 @@ export async function fetchMLModels() {
   const data = await res.json();
   return data.models;
 }
+
+export async function askCityAssistant(query) {
+  const res = await fetch(`${API_BASE}/assistant/ask`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query })
+  });
+  if (!res.ok) throw new Error(`Failed to ask City AI Assistant: ${res.statusText}`);
+  const data = await res.json();
+  return data.data;
+}
