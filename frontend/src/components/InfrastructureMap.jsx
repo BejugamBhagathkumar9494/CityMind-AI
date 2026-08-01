@@ -37,12 +37,28 @@ const createSmartCityMarker = (riskScore) => {
   });
 };
 
-export default function InfrastructureMap({ height = "600px", onSelectAsset }) {
+const CITY_COORDINATES = {
+  bengaluru: [12.9716, 77.5946],
+  mumbai: [19.0760, 72.8777],
+  delhi: [28.6139, 77.2090]
+};
+
+function MapRecenter({ center }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center, 12);
+  }, [center, map]);
+  return null;
+}
+
+export default function InfrastructureMap({ height = "600px", onSelectAsset, selectedCity = "bengaluru" }) {
   const [assets, setAssets] = useState([]);
   const [selectedType, setSelectedType] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const cityCenter = CITY_COORDINATES[selectedCity] || CITY_COORDINATES.bengaluru;
 
   useEffect(() => {
     async function loadMapData() {
@@ -58,9 +74,7 @@ export default function InfrastructureMap({ height = "600px", onSelectAsset }) {
       }
     }
     loadMapData();
-  }, [selectedType]);
-
-  const defaultCenter = [12.9716, 77.5946]; // Bengaluru Metro GIS Center
+  }, [selectedType, selectedCity]);
 
   const filteredAssets = assets.filter(a => {
     if (searchTerm) {
@@ -136,19 +150,20 @@ export default function InfrastructureMap({ height = "600px", onSelectAsset }) {
         </div>
       ) : (
         <MapContainer
-          center={defaultCenter}
+          center={cityCenter}
           zoom={12}
           scrollWheelZoom={true}
           style={{ width: '100%', height: '100%' }}
         >
+          <MapRecenter center={cityCenter} />
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
           {filteredAssets.map((asset) => {
-            const lat = asset.latitude || (defaultCenter[0] + (Math.random() - 0.5) * 0.08);
-            const lng = asset.longitude || (defaultCenter[1] + (Math.random() - 0.5) * 0.08);
+            const lat = asset.latitude || (cityCenter[0] + (Math.random() - 0.5) * 0.08);
+            const lng = asset.longitude || (cityCenter[1] + (Math.random() - 0.5) * 0.08);
             const risk = asset.risk_score || Math.round((asset.failure_probability || 0.5) * 100);
 
             return (

@@ -87,7 +87,7 @@ export default function App() {
           <div className="space-y-6">
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-card">
               <h2 className="text-sm font-bold text-slate-900 mb-3">Geographic Infrastructure Risk Map</h2>
-              <InfrastructureMap height="450px" onSelectAsset={(asset) => setInspectedAsset(asset)} />
+              <InfrastructureMap height="450px" selectedCity={selectedCity} onSelectAsset={(asset) => setInspectedAsset(asset)} />
             </div>
             <InfrastructureTable onOpenInspection={(asset) => setInspectedAsset(asset)} />
           </div>

@@ -58,6 +58,66 @@ export default function BudgetPlanning() {
         </button>
       </div>
 
+      {/* KPI BUDGET METRICS & INTERACTIVE SLIDER */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-card space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Set Custom City Infrastructure Budget Constraint</span>
+            <div className="flex items-center gap-3 mt-1">
+              <span className="text-3xl font-black text-blue-600">₹</span>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                step="0.5"
+                value={totalBudgetCr}
+                onChange={(e) => setTotalBudgetCr(Math.max(1.0, parseFloat(e.target.value) || 1.0))}
+                className="w-32 bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-2xl font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <span className="text-2xl font-black text-slate-900">Cr</span>
+            </div>
+          </div>
+
+          {/* Quick Preset Buttons */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-bold text-slate-400 uppercase mr-1">Presets:</span>
+            {[5.0, 10.0, 20.44, 50.0, 100.0].map(val => (
+              <button
+                key={val}
+                onClick={() => setTotalBudgetCr(val)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
+                  totalBudgetCr === val
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                ₹{val} Cr
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Range Slider */}
+        <div className="space-y-1 pt-2">
+          <input
+            type="range"
+            min="1.0"
+            max="100.0"
+            step="0.5"
+            value={totalBudgetCr}
+            onChange={(e) => setTotalBudgetCr(parseFloat(e.target.value))}
+            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+          />
+          <div className="flex justify-between text-[10px] text-slate-400 font-bold">
+            <span>₹1.0 Cr</span>
+            <span>₹25.0 Cr</span>
+            <span>₹50.0 Cr</span>
+            <span>₹75.0 Cr</span>
+            <span>₹100.0 Cr</span>
+          </div>
+        </div>
+      </div>
+
       {/* KPI BUDGET METRICS */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-card">
@@ -65,13 +125,13 @@ export default function BudgetPlanning() {
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-2xl font-extrabold text-slate-900">₹{totalBudgetCr.toFixed(2)} Cr</span>
           </div>
-          <p className="text-[11px] text-blue-600 font-semibold mt-1">FY 2026-27 Smart Infrastructure</p>
+          <p className="text-[11px] text-blue-600 font-semibold mt-1">Interactive Municipal Budget</p>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-card">
           <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Allocated Funds</span>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-extrabold text-emerald-600">₹{optimization?.allocated_cr.toFixed(2) || '6.25'} Cr</span>
+            <span className="text-2xl font-extrabold text-emerald-600">₹{optimization?.allocated_cr.toFixed(2) || (totalBudgetCr * 0.75).toFixed(2)} Cr</span>
           </div>
           <p className="text-[11px] text-emerald-600 font-semibold mt-1">Optimized Project Allocation</p>
         </div>
@@ -79,15 +139,15 @@ export default function BudgetPlanning() {
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-card">
           <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Unallocated Reserve</span>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-extrabold text-slate-700">₹{optimization?.remaining_cr.toFixed(2) || '3.75'} Cr</span>
+            <span className="text-2xl font-extrabold text-slate-700">₹{optimization?.remaining_cr.toFixed(2) || (totalBudgetCr * 0.25).toFixed(2)} Cr</span>
           </div>
-          <p className="text-[11px] text-slate-500 font-semibold mt-1">Contingency Fund</p>
+          <p className="text-[11px] text-slate-500 font-semibold mt-1">Contingency Reserve</p>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-card">
           <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Citizens Protected</span>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-extrabold text-blue-600">{((optimization?.citizens_benefited || 243000)/1000).toFixed(0)}k</span>
+            <span className="text-2xl font-extrabold text-blue-600">{((optimization?.citizens_benefited || (totalBudgetCr * 25000))/1000).toFixed(0)}k</span>
           </div>
           <p className="text-[11px] text-blue-600 font-semibold mt-1">Maximum Population ROI</p>
         </div>
