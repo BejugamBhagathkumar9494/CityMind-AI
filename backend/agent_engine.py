@@ -27,15 +27,17 @@ class AgentOrchestrator:
         # Step 1: Complaint Intelligence Agent
         cursor.execute("SELECT * FROM complaints")
         complaints = [dict(r) for r in cursor.fetchall()]
-        complaint_texts = [c['description'] for c in complaints]
+        complaint_texts = [c['description'] for c in complaints if c.get('description')]
         clusters = ml_engine.cluster_complaints(complaint_texts)
+        cluster_titles = [c.get('title', f"Cluster #{c['cluster_id']}") for c in clusters]
+        clusters_str = ", ".join(cluster_titles) if cluster_titles else "General Infrastructure Issues"
         logs.append({
             "step": 1,
             "agent_id": "agent_complaint",
             "agent_name": "Complaint Intelligence Agent",
             "status": "Completed",
-            "message": f"Analyzed {len(complaints)} complaints across city wards. Identified 4 main failure clusters: Road Potholes, Water Contamination, Grid Spikes, Drainage.",
-            "data": {"total_complaints": len(complaints), "clusters_found": len(clusters)}
+            "message": f"Analyzed {len(complaints)} complaints across city wards. Identified {len(clusters)} main failure clusters: {clusters_str}.",
+            "data": {"total_complaints": len(complaints), "clusters_found": len(clusters), "clusters": clusters}
         })
 
         # Step 2: Infrastructure Risk Agent
@@ -50,29 +52,30 @@ class AgentOrchestrator:
             if asset['risk_score'] >= 70.0:
                 high_risk_assets.append(asset)
                 
-        # Sort assets by priority score
         assets.sort(key=lambda x: x['priority_score'], reverse=True)
         logs.append({
             "step": 2,
             "agent_id": "agent_risk",
             "agent_name": "Infrastructure Risk Agent",
             "status": "Completed",
-            "message": f"Evaluated {len(assets)} infrastructure assets using XGBoost model. Found {len(high_risk_assets)} assets above critical risk threshold (80%+).",
+            "message": f"Evaluated {len(assets)} infrastructure assets using XGBoost model. Found {len(high_risk_assets)} assets above critical risk threshold (70%+ risk score).",
             "data": {"evaluated_assets": len(assets), "high_risk_count": len(high_risk_assets)}
         })
 
         # Step 3: Budget Agent
         cursor.execute("SELECT * FROM budgets")
         budgets = [dict(r) for r in cursor.fetchall()]
-        total_budget = sum(b['allocated_inr'] for b in budgets)
-        opt_result = ml_engine.optimize_budget(assets, total_budget_cr=10.0)
+        total_budget = sum(b['allocated_inr'] for b in budgets) if budgets else 10.0
+        if total_budget <= 0:
+            total_budget = 10.0
+        opt_result = ml_engine.optimize_budget(assets, total_budget_cr=total_budget)
         logs.append({
             "step": 3,
             "agent_id": "agent_budget",
             "agent_name": "Budget Agent",
             "status": "Completed",
-            "message": f"Evaluated ₹{total_budget:.2f} Cr municipal budget across 5 departments. Simulated knapsack optimization for maximum risk reduction.",
-            "data": {"total_budget_cr": total_budget, "optimized_allocation_cr": opt_result['allocated_cr']}
+            "message": f"Evaluated ₹{total_budget:.2f} Cr municipal budget across {len(budgets)} departments. Executed knapsack optimization algorithm for maximum risk reduction.",
+            "data": {"total_budget_cr": total_budget, "optimized_allocation_cr": opt_result['allocated_cr'], "sector_breakdown": opt_result['sector_breakdown']}
         })
 
         # Step 4: Citizen Impact Agent
@@ -96,19 +99,21 @@ class AgentOrchestrator:
                 "estimated_duration": "14 Days",
                 "recommended_action": proj['recommended_action']
             })
+        phase_names = [s['asset_name'] for s in schedule]
         logs.append({
             "step": 5,
             "agent_id": "agent_planning",
             "agent_name": "Planning Agent",
             "status": "Completed",
-            "message": f"Generated phased repair schedule prioritizing {len(schedule)} critical infrastructure corridors.",
-            "data": {"scheduled_phases": len(schedule)}
+            "message": f"Generated phased repair schedule prioritizing {len(schedule)} critical infrastructure corridors: {', '.join(phase_names)}.",
+            "data": {"scheduled_phases": len(schedule), "schedule": schedule}
         })
 
         # Step 6: Decision Agent + RAG policy lookup
         top_pick = assets[0] if assets else {}
         rag_citations = rag_engine.query_policy(f"Priority repair for {top_pick.get('type', 'Road')} corridor near critical facility")
         
+        top_confidence = round(float(top_pick.get('failure_probability', 0.85) * 0.5 + (rag_citations[0]['confidence_score'] if rag_citations else 0.8) * 0.5), 2)
         top_recommendation = {
             "rank": 1,
             "asset_id": top_pick.get('id'),
@@ -120,7 +125,7 @@ class AgentOrchestrator:
             "citizens_impacted": top_pick.get('population_affected'),
             "estimated_cost_inr": f"₹{top_pick.get('repair_cost_inr')} Cr",
             "priority_score": top_pick.get('priority_score'),
-            "confidence": 0.94,
+            "confidence": top_confidence,
             "recommended_action": top_pick.get('recommended_action'),
             "reasoning": f"{top_pick.get('name')} exhibits critical failure probability ({int(top_pick.get('failure_probability', 0.85)*100)}%) with {top_pick.get('complaints_count')} citizen complaints impacting {top_pick.get('population_affected'):,} residents.",
             "rag_evidence": rag_citations
@@ -135,15 +140,24 @@ class AgentOrchestrator:
             "data": top_recommendation
         })
 
-        conn.close()
-
-        # Save run record
         summary = {
             "run_id": run_id,
             "top_recommendation": top_recommendation,
             "budget_optimization": opt_result,
             "scheduled_phases": schedule
         }
+
+        # Save run record into DB
+        try:
+            cursor.execute(
+                "INSERT INTO agent_runs (id, status, logs_json, summary_json) VALUES (?, ?, ?, ?)",
+                (run_id, "Completed", json.dumps(logs), json.dumps(summary))
+            )
+            conn.commit()
+        except Exception as e:
+            print(f"Error persisting agent run: {e}")
+
+        conn.close()
 
         return {
             "run_id": run_id,

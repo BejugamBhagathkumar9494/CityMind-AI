@@ -1,18 +1,18 @@
 import faiss
 import numpy as np
-from sentence_transformers import SentenceTransformer
 import sqlite3
 import os
 import json
 
 class RAGEngine:
     def __init__(self):
-        print("Initializing RAG Vector Engine with Sentence Transformers...")
+        print("Initializing RAG Vector Engine...")
         try:
+            from sentence_transformers import SentenceTransformer
             self.model = SentenceTransformer('all-MiniLM-L6-v2')
             self.embedding_dim = 384
         except Exception as e:
-            print(f"Fallback to simple embedding model due to: {e}")
+            print(f"Fallback to simple vector embedding model due to: {e}")
             self.model = None
             self.embedding_dim = 384
 
@@ -59,6 +59,10 @@ class RAGEngine:
             self.index = faiss.IndexFlatIP(self.embedding_dim) # Inner product = cosine similarity
             self.index.add(vector_matrix)
             print(f"Indexed {len(self.doc_chunks)} policy document chunks into FAISS vector store.")
+
+    def reindex_documents(self):
+        """Force reload and re-indexing of all policy documents from database."""
+        self._load_and_index_documents()
 
     def query_policy(self, query_text, top_k=2):
         """Query policy documents for semantic matches to justify city infrastructure decisions."""
