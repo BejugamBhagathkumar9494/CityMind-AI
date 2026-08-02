@@ -16,8 +16,8 @@ export default function CityAssistantWidget() {
   const [messages, setMessages] = useState([
     {
       sender: 'assistant',
-      text: 'Hello Officer! I am your City AI Assistant. Ask me anything about municipal infrastructure risk, citizen complaint hotspots, budget cuts, or department SLA performance grounded directly in your uploaded database datasets.',
-      citations: ['Database Engine: RAG Active']
+      text: 'Hello Officer! I am your City AI Assistant. Ask me anything about municipal infrastructure risk, citizen complaint hotspots, budget cuts, or department SLA performance.',
+      citations: []
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
@@ -128,19 +128,27 @@ export default function CityAssistantWidget() {
                 >
                   <p className="whitespace-pre-line">{m.text}</p>
 
-                  {m.citations && m.citations.length > 0 && (
-                    <div className="mt-2.5 pt-2 border-t border-slate-200/60 text-[10px] text-slate-500 space-y-1">
-                      <div className="font-bold flex items-center gap-1 text-slate-600">
-                        <Database className="w-3 h-3 text-blue-600" />
-                        <span>Database Citations:</span>
-                      </div>
-                      {m.citations.map((c, ci) => (
-                        <div key={ci} className="font-mono text-slate-600 bg-white/70 px-1.5 py-0.5 rounded border border-slate-200/60 inline-block mr-1">
-                          {c}
+                  {(() => {
+                    const validCitations = (m.citations || []).filter(c => 
+                      typeof c === 'string' 
+                        ? !c.includes('Database Table') && !c.includes('Table: public') && !c.includes('Database Record')
+                        : true
+                    );
+                    if (validCitations.length === 0) return null;
+                    return (
+                      <div className="mt-2.5 pt-2 border-t border-slate-200/60 text-[10px] text-slate-500 space-y-1">
+                        <div className="font-bold flex items-center gap-1 text-slate-600">
+                          <FileText className="w-3 h-3 text-blue-600" />
+                          <span>Policy & Statutory Citations:</span>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                        {validCitations.map((c, ci) => (
+                          <div key={ci} className="font-sans font-semibold text-slate-700 bg-white px-2 py-1 rounded-md border border-slate-200 block">
+                            {typeof c === 'object' ? `${c.doc_title || 'Policy Clause'} (Section: ${c.relevant_section || 'DMC Act'})` : c}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             ))}

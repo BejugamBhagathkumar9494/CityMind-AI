@@ -44,7 +44,7 @@ class AssistantService:
                 return {
                     "query": user_query,
                     "answer": answer,
-                    "citations": [f"Database Record: {asset['id']}", f"Table: public.infrastructure"] + citations,
+                    "citations": [],
                     "asset_id": asset['id']
                 }
 
@@ -66,7 +66,7 @@ class AssistantService:
                 return {
                     "query": user_query,
                     "answer": answer,
-                    "citations": ["Database Table: public.complaints", "NLP TF-IDF Cluster Engine"],
+                    "citations": [],
                     "hotspots": rows
                 }
 
@@ -92,7 +92,7 @@ class AssistantService:
             return {
                 "query": user_query,
                 "answer": answer,
-                "citations": ["Knapsack Budget Optimization Engine", "Table: public.budgets"]
+                "citations": []
             }
 
         # 4. Department Funding Requirement Query
@@ -112,7 +112,7 @@ class AssistantService:
             return {
                 "query": user_query,
                 "answer": answer,
-                "citations": ["Table: public.budgets", "Department SLA Register"]
+                "citations": []
             }
 
         # 5. City Health Score Query
@@ -134,7 +134,7 @@ class AssistantService:
             return {
                 "query": user_query,
                 "answer": answer,
-                "citations": ["Table: public.infrastructure", "XGBoost City Risk Aggregator"]
+                "citations": []
             }
 
         # Grounded RAG search using FAISS Policy & Municipal Act Index
