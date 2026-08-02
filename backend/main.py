@@ -1,11 +1,15 @@
 import os
 import json
+import time
+import logging
 import sqlite3
 import pandas as pd
 from typing import Optional, List
-from fastapi import FastAPI, HTTPException, UploadFile, File, Body, Query
+from fastapi import FastAPI, HTTPException, UploadFile, File, Body, Query, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+logger = logging.getLogger("citymind")
 
 from backend.database import init_db, get_db_connection
 from backend.ml_engine import ml_engine
