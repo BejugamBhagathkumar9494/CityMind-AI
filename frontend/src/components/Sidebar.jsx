@@ -20,21 +20,12 @@ import {
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { id: 'overview', label: 'Overview', icon: LayoutDashboard, badge: null },
-  { id: 'infrastructure', label: 'Infrastructure', icon: MapPin, badge: 'Risk' },
-  { id: 'roads', label: 'Road Damage', icon: Car, badge: 'Telemetry' },
-  { id: 'water', label: 'Water Leakage', icon: Droplet, badge: 'Acoustic' },
-  { id: 'energy', label: 'Power Outages', icon: Zap, badge: 'Grid' },
-  { id: 'transport', label: 'Public Transport', icon: Bus, badge: 'Mobility' },
-  { id: 'complaints', label: 'Complaints', icon: MessageSquareWarning, badge: 'NLP' },
-  { id: 'agents', label: 'AI Agents', icon: Bot, badge: '6 Active', highlight: true },
-  { id: 'budget', label: 'Budget Allocation', icon: PieChart, badge: 'ROI' },
-  { id: 'department', label: 'Departments', icon: Building2, badge: 'SLAs' },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3, badge: null },
-  { id: 'reports', label: 'Reports', icon: FileText, badge: null },
-  { id: 'documents', label: 'Documents / RAG', icon: FolderGit2, badge: 'Policy' },
-  { id: 'alerts', label: 'Alerts', icon: Bell, badge: 'Warnings' },
-  { id: 'settings', label: 'Settings & Data', icon: Settings, badge: null },
+  { id: 'overview', label: 'Overview & Upload', icon: LayoutDashboard, badge: 'Live' },
+  { id: 'infrastructure', label: 'Infrastructure Risk', icon: MapPin, badge: 'XGBoost' },
+  { id: 'complaints', label: 'Citizen Complaints', icon: MessageSquareWarning, badge: 'NLP' },
+  { id: 'documents', label: 'Policy RAG Search', icon: FolderGit2, badge: 'FAISS' },
+  { id: 'budget', label: 'Budget Optimization', icon: PieChart, badge: 'Knapsack' },
+  { id: 'agents', label: 'AI Agents', icon: Bot, badge: '4 Active', highlight: true },
 ];
 
 export default function Sidebar({ activeTab, setActiveTab, onStartDemo }) {

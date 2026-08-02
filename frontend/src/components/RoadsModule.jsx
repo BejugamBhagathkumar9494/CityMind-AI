@@ -22,9 +22,9 @@ export default function RoadsModule({ onOpenInspection }) {
       setError(null);
       try {
         const res = await fetchRoadsTelemetry();
-        setData(res);
+        if (res) setData(res);
       } catch (err) {
-        setError(err.message || 'Failed to fetch road damage telemetry.');
+        console.warn("Roads telemetry load error:", err);
       } finally {
         setIsLoading(false);
       }

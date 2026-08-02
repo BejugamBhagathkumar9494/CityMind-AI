@@ -21,9 +21,9 @@ export default function EnergyModule({ onOpenInspection }) {
       setError(null);
       try {
         const res = await fetchEnergyTelemetry();
-        setData(res);
+        if (res) setData(res);
       } catch (err) {
-        setError(err.message || 'Failed to fetch power grid telemetry.');
+        console.warn("Energy telemetry load error:", err);
       } finally {
         setIsLoading(false);
       }

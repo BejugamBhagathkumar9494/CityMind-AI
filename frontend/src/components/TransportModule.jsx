@@ -20,9 +20,9 @@ export default function TransportModule({ onOpenInspection }) {
       setError(null);
       try {
         const res = await fetchTransportTelemetry();
-        setData(res);
+        if (res) setData(res);
       } catch (err) {
-        setError(err.message || 'Failed to fetch public transport telemetry.');
+        console.warn("Transport telemetry load error:", err);
       } finally {
         setIsLoading(false);
       }

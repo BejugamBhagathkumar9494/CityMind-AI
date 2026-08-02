@@ -16,6 +16,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import InfrastructureMap from './InfrastructureMap';
+import SettingsDataIngestion from './SettingsDataIngestion';
 import { fetchAnalytics, runAgentAnalysis, fetchInfrastructure } from '../services/api';
 
 const CITY_METRICS = {
@@ -49,6 +50,7 @@ const CITY_METRICS = {
 };
 
 export default function Overview({ onNavigate, onOpenInspection, selectedCity = "bengaluru" }) {
+  const [activeSubTab, setActiveSubTab] = useState('dashboard'); // 'dashboard' or 'upload'
   const [analytics, setAnalytics] = useState(null);
   const [infraItems, setInfraItems] = useState([]);
   const [agentResult, setAgentResult] = useState(null);
@@ -160,16 +162,44 @@ export default function Overview({ onNavigate, onOpenInspection, selectedCity = 
         </div>
 
         <div className="flex items-center gap-3">
+          <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1 border border-slate-200">
+            <button
+              onClick={() => setActiveSubTab('dashboard')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeSubTab === 'dashboard'
+                  ? 'bg-white text-blue-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              📊 Live Command Dashboard
+            </button>
+            <button
+              onClick={() => setActiveSubTab('upload')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeSubTab === 'upload'
+                  ? 'bg-white text-blue-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              📤 Data Ingestion & Upload
+            </button>
+          </div>
+
           <button
             onClick={handleRunAnalysis}
             disabled={isAnalyzing}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all"
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all shrink-0"
           >
             <Sparkles className={`w-4 h-4 ${isAnalyzing ? 'animate-spin' : ''}`} />
-            <span>{isAnalyzing ? 'Executing Agent Workflow...' : 'Run City Analysis'}</span>
+            <span>{isAnalyzing ? 'Running Agents...' : 'Run Agent Analysis'}</span>
           </button>
         </div>
       </div>
+
+      {activeSubTab === 'upload' ? (
+        <SettingsDataIngestion />
+      ) : (
+        <>
 
       {/* KPI CARDS GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -285,6 +315,8 @@ export default function Overview({ onNavigate, onOpenInspection, selectedCity = 
           <InfrastructureMap />
         </div>
       </div>
+      </>
+      )}
 
     </div>
   );

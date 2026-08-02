@@ -232,9 +232,10 @@ def ingest_all_datasets():
         """, budget_items)
 
     # -------------------------------------------------------------
-    # 5. INGEST MUNICIPAL POLICIES FOR RAG ENGINE
     # -------------------------------------------------------------
-    print("📚 Ingesting Municipal Guidelines & Policies into RAG Database...")
+    # 5. INGEST MUNICIPAL POLICIES & PDF DOCUMENTS FOR RAG ENGINE
+    # -------------------------------------------------------------
+    print("📚 Ingesting Municipal Guidelines, Policies & RAG PDF Documents...")
     policies = [
         ("DOC-POL-001", "Municipal Road Infrastructure Maintenance Policy 2024", "Roads Policy", 
          "SECTION 4.2: PRIORITY REPAIR CRITERIA FOR ARTERIAL CORRIDORS. Arterial corridors with daily traffic exceeding 25,000 passenger vehicle units must be inspected monthly. Any structural degradation yielding condition rating below 3.0 mandates emergency budget clearance within 7 days.\n\nSECTION 4.3: Bituminous concrete resurfacing must be prioritized over routine patching if complaint density exceeds 100 per kilometer."),
@@ -246,10 +247,60 @@ def ingest_all_datasets():
          "SECTION 8.1: HIGH-LOAD SUBSTATION INSULATION. Grid transformers operating above 85% capacity with previous trip history within 6 months must be scheduled for immediate cooling oil replacement and telemetry upgrade.")
     ]
     
-    cursor.executemany("""
-    INSERT INTO documents (id, title, category, content, chunk_count)
-    VALUES (?, ?, ?, ?, 2)
-    """, policies)
+    for pol_id, title, cat, content in policies:
+        chunks_count = len(content.split('\n\n'))
+        cursor.execute("""
+        INSERT INTO documents (id, title, category, content, chunk_count)
+        VALUES (?, ?, ?, ?, ?)
+        """, (pol_id, title, cat, content, chunks_count))
+
+    # Ingest PDF files from 'RAG FILE' folder
+    rag_dir = os.path.join(os.path.dirname(__file__), "..", "RAG FILE")
+    if os.path.exists(rag_dir):
+        import glob
+        import re
+        pdf_files = glob.glob(os.path.join(rag_dir, "*.pdf"))
+        for pdf_path in pdf_files:
+            filename = os.path.basename(pdf_path)
+            doc_title = os.path.splitext(filename)[0].replace('_', ' ').replace('-', ' ')
+            print(f"  📄 Processing RAG PDF: {filename}...")
+            try:
+                import pypdf
+                reader = pypdf.PdfReader(pdf_path)
+                pages_text = []
+                for p in reader.pages:
+                    t = p.extract_text()
+                    if t and t.strip():
+                        pages_text.append(t.strip())
+                
+                full_text = '\n\n'.join(pages_text)
+                raw_paragraphs = re.split(r'\n\s*\n', full_text)
+                chunks = []
+                current_chunk = ""
+                
+                for p in raw_paragraphs:
+                    p_clean = re.sub(r'\s+', ' ', p).strip()
+                    if not p_clean or len(p_clean) < 30:
+                        continue
+                    if len(current_chunk) + len(p_clean) < 1000:
+                        current_chunk += (" " if current_chunk else "") + p_clean
+                    else:
+                        if current_chunk.strip():
+                            chunks.append(current_chunk.strip())
+                        current_chunk = p_clean
+                if current_chunk.strip():
+                    chunks.append(current_chunk.strip())
+
+                if chunks:
+                    chunked_content = "\n\n".join(chunks)
+                    doc_id = f"DOC-RAG-{hash(filename) & 0xFFFFFF:06X}"
+                    cursor.execute("""
+                    INSERT INTO documents (id, title, category, content, file_path, chunk_count)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """, (doc_id, f"Municipal Act: {doc_title}", "Statutory Law & Governance", chunked_content, pdf_path, len(chunks)))
+                    print(f"  ✅ Ingested '{doc_title}' ({len(chunks)} chunks).")
+            except Exception as e:
+                print(f"  ⚠️ Could not parse PDF {filename}: {e}")
 
     conn.commit()
     conn.close()
@@ -257,3 +308,4 @@ def ingest_all_datasets():
 
 if __name__ == "__main__":
     ingest_all_datasets()
+

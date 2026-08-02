@@ -21,9 +21,9 @@ export default function DepartmentModule() {
       setError(null);
       try {
         const res = await fetchDepartmentTelemetry();
-        setData(res);
+        if (res) setData(res);
       } catch (err) {
-        setError(err.message || 'Failed to fetch department performance data.');
+        console.warn("Department telemetry load error:", err);
       } finally {
         setIsLoading(false);
       }

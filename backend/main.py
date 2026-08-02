@@ -1,10 +1,15 @@
 import os
+import sys
 import json
 import time
 import logging
 import sqlite3
 import pandas as pd
 from typing import Optional, List
+
+# Ensure parent directory is in sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from fastapi import FastAPI, HTTPException, UploadFile, File, Body, Query, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -310,7 +315,38 @@ async def upload_policy_document(
 ):
     try:
         contents = await file.read()
-        text_content = contents.decode('utf-8', errors='ignore')
+        if file.filename.lower().endswith('.pdf') or contents.startswith(b'%PDF'):
+            import io, pypdf, re
+            pdf_reader = pypdf.PdfReader(io.BytesIO(contents))
+            pages_text = []
+            for p in pdf_reader.pages:
+                t = p.extract_text()
+                if t and t.strip():
+                    pages_text.append(t.strip())
+            
+            full_text = "\n\n".join(pages_text)
+            raw_paragraphs = re.split(r'\n\s*\n', full_text)
+            chunks = []
+            current_chunk = ""
+            for p in raw_paragraphs:
+                p_clean = re.sub(r'\s+', ' ', p).strip()
+                if not p_clean or len(p_clean) < 30:
+                    continue
+                if len(current_chunk) + len(p_clean) < 1000:
+                    current_chunk += (" " if current_chunk else "") + p_clean
+                else:
+                    if current_chunk.strip():
+                        chunks.append(current_chunk.strip())
+                    current_chunk = p_clean
+            if current_chunk.strip():
+                chunks.append(current_chunk.strip())
+
+            text_content = "\n\n".join(chunks) if chunks else full_text
+            chunk_count = len(chunks) if chunks else len(text_content.split('\n\n'))
+        else:
+            text_content = contents.decode('utf-8', errors='ignore')
+            chunk_count = len(text_content.split('\n\n'))
+
         if not text_content.strip():
             raise HTTPException(status_code=400, detail="Uploaded file is empty or could not be decoded.")
 
@@ -321,7 +357,7 @@ async def upload_policy_document(
         cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO documents (id, title, category, content, chunk_count) VALUES (?, ?, ?, ?, ?)",
-            (doc_id, title, category, text_content, len(text_content.split('\n\n')))
+            (doc_id, title, category, text_content, chunk_count)
         )
         conn.commit()
         conn.close()
@@ -330,8 +366,9 @@ async def upload_policy_document(
 
         return {
             "status": "success",
-            "message": f"Successfully ingested policy document '{title}' into RAG vector index.",
-            "doc_id": doc_id
+            "message": f"Successfully ingested policy document '{title}' ({chunk_count} chunks) into RAG vector index.",
+            "doc_id": doc_id,
+            "chunk_count": chunk_count
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to ingest policy document: {str(e)}")

@@ -19,6 +19,19 @@ class RAGEngine:
         self.index = faiss.IndexFlatIP(self.embedding_dim)
         self.doc_chunks = []
 
+    def _clean_text_chunk(self, text: str) -> str:
+        """Sanitize text chunk by stripping raw PDF stream tags and binary artifacts."""
+        import re
+        if not text:
+            return ""
+        # Check for PDF stream keywords that indicate unparsed PDF binary data
+        if any(tag in text for tag in ['endstream', 'endobj', 'FlateDecode', '<<Type', '/ProcSet', 'WinAnsiEncoding', '/FontDescriptor']):
+            return ""
+        # Remove non-printable control characters
+        cleaned = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', text)
+        cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+        return cleaned if len(cleaned) >= 20 else ""
+
     def _load_and_index_documents(self):
         """Load municipal policy documents from database and index into FAISS using TF-IDF vector embeddings."""
         from backend.database import get_db_connection, init_db
@@ -37,15 +50,18 @@ class RAGEngine:
             doc_id, title, category, content = doc['id'], doc['title'], doc['category'], doc['content']
             paragraphs = [p.strip() for p in content.split('\n\n') if p.strip()]
             for idx, p in enumerate(paragraphs):
+                cleaned_p = self._clean_text_chunk(p)
+                if not cleaned_p:
+                    continue
                 chunk_id = f"{doc_id}_chunk_{idx}"
                 self.doc_chunks.append({
                     "chunk_id": chunk_id,
                     "doc_id": doc_id,
                     "title": title,
                     "category": category,
-                    "text": p
+                    "text": cleaned_p
                 })
-                texts.append(p)
+                texts.append(cleaned_p)
 
         if texts:
             X_tfidf = self.vectorizer.fit_transform(texts).toarray().astype('float32')

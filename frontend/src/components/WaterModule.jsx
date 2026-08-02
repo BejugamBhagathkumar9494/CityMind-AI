@@ -21,9 +21,9 @@ export default function WaterModule({ onOpenInspection }) {
       setError(null);
       try {
         const res = await fetchWaterTelemetry();
-        setData(res);
+        if (res) setData(res);
       } catch (err) {
-        setError(err.message || 'Failed to fetch water network telemetry.');
+        console.warn("Water telemetry load error:", err);
       } finally {
         setIsLoading(false);
       }

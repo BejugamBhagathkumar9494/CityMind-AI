@@ -112,30 +112,16 @@ export default function App() {
             <InfrastructureTable onOpenInspection={(asset) => setInspectedAsset(asset)} />
           </div>
         );
-      case 'roads':
-        return <RoadsModule onOpenInspection={(asset) => setInspectedAsset(asset)} />;
-      case 'water':
-        return <WaterModule onOpenInspection={(asset) => setInspectedAsset(asset)} />;
-      case 'energy':
-        return <EnergyModule onOpenInspection={(asset) => setInspectedAsset(asset)} />;
-      case 'transport':
-        return <TransportModule onOpenInspection={(asset) => setInspectedAsset(asset)} />;
-      case 'department':
-        return <DepartmentModule />;
       case 'complaints':
         return <Complaints />;
-      case 'agents':
-        return <AIAgents />;
-      case 'budget':
-        return <BudgetPlanning />;
-      case 'analytics':
-        return <Analytics />;
-      case 'reports':
-        return <Reports />;
       case 'documents':
         return <DocumentsRAG />;
-      case 'alerts':
-        return <Alerts />;
+      case 'budget':
+        return <BudgetPlanning />;
+      case 'agents':
+        return <AIAgents />;
+      case 'analytics':
+        return <Analytics />;
       case 'settings':
         return <SettingsDataIngestion />;
       default:
