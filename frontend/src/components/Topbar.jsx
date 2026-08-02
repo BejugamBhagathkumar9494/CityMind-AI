@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, 
   Bell, 
@@ -25,10 +25,22 @@ export default function Topbar({
 }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showCityMenu, setShowCityMenu] = useState(false);
   const [weather, setWeather] = useState(null);
+  const cityMenuRef = useRef(null);
 
   useEffect(() => {
     fetchLiveWeather().then(res => setWeather(res)).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (cityMenuRef.current && !cityMenuRef.current.contains(event.target)) {
+        setShowCityMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const cities = [
@@ -46,30 +58,38 @@ export default function Topbar({
       {/* Left: City Selector & Search */}
       <div className="flex items-center space-x-4 flex-1 max-w-2xl">
         {/* City Selector */}
-        <div className="relative group">
-          <button className="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 transition-colors">
+        <div className="relative" ref={cityMenuRef}>
+          <button 
+            onClick={() => setShowCityMenu(!showCityMenu)}
+            className="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 transition-colors"
+          >
             <Building2 className="w-4 h-4 text-blue-600" />
             <span>{cities.find(c => c.id === selectedCity)?.name || 'Bengaluru Metro Region'}</span>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
           </button>
 
-          <div className="absolute top-full left-0 mt-1 w-60 bg-white border border-slate-200 rounded-xl shadow-lg py-1 hidden group-hover:block z-50">
-            <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              Select City Network
+          {showCityMenu && (
+            <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 z-50 animate-in fade-in duration-150">
+              <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Select Active City Network
+              </div>
+              {cities.map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => {
+                    setSelectedCity(c.id);
+                    setShowCityMenu(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 text-xs font-medium flex items-center justify-between hover:bg-blue-50 transition-colors ${
+                    selectedCity === c.id ? 'text-blue-600 bg-blue-50/70 font-bold' : 'text-slate-700'
+                  }`}
+                >
+                  <span>{c.name}</span>
+                  <span className="text-[10px] text-slate-400 font-mono font-bold bg-slate-100 px-1.5 py-0.5 rounded">{c.code}</span>
+                </button>
+              ))}
             </div>
-            {cities.map(c => (
-              <button
-                key={c.id}
-                onClick={() => setSelectedCity(c.id)}
-                className={`w-full text-left px-3 py-2 text-xs font-medium flex items-center justify-between hover:bg-slate-50 ${
-                  selectedCity === c.id ? 'text-blue-600 bg-blue-50/50 font-semibold' : 'text-slate-700'
-                }`}
-              >
-                <span>{c.name}</span>
-                <span className="text-[10px] text-slate-400 font-mono">{c.code}</span>
-              </button>
-            ))}
-          </div>
+          )}
         </div>
 
         {/* Global Search Bar */}
