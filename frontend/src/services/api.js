@@ -1,6 +1,16 @@
+const sanitizeUrl = (urlStr) => {
+  if (!urlStr || typeof urlStr !== 'string') return '';
+  let str = urlStr.trim();
+  if (!str || str === 'undefined' || str === 'null') return '';
+  if (!str.startsWith('http://') && !str.startsWith('https://') && !str.startsWith('/')) {
+    str = `https://${str}`;
+  }
+  return str.replace(/\/+$/, '');
+};
+
 const getApiBase = () => {
-  let url = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-  url = url.trim().replace(/\/+$/, '');
+  let url = sanitizeUrl(import.meta.env.VITE_API_URL || 'http://localhost:8000/api');
+  if (!url) url = 'http://localhost:8000/api';
   if (!url.endsWith('/api') && !url.includes('/api/')) {
     url = `${url}/api`;
   }

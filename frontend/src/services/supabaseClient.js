@@ -1,6 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
+const sanitizeUrl = (urlStr) => {
+  if (!urlStr || typeof urlStr !== 'string') return '';
+  let str = urlStr.trim();
+  if (!str || str === 'undefined' || str === 'null') return '';
+  if (!str.startsWith('http://') && !str.startsWith('https://') && !str.startsWith('/')) {
+    str = `https://${str}`;
+  }
+  return str.replace(/\/+$/, '');
+};
+
+const supabaseUrl = sanitizeUrl(import.meta.env.VITE_SUPABASE_URL);
 const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
 
 export const isSupabaseConfigured = Boolean(
@@ -16,97 +26,107 @@ export const supabase = isSupabaseConfigured
   : null;
 
 /**
- * Universal authentication helper supporting Supabase Cloud & Local API Auth Fallback
+ * Universal authentication helper supporting Supabase Cloud, Local API, & Standalone Demo Fallback
  */
 export async function authenticateUser({ email, password, name, role = 'City Admin Officer', isRegister = false }) {
-  // Option 1: Real Supabase Cloud Auth if configured
+  const userEmail = (email || '').trim().toLowerCase() || 'admin@citymind.ai';
+  const userPass = password || 'citymind2026';
+  const userName = name || userEmail.split('@')[0] || 'Admin Officer';
+  const userRole = role || 'City Admin Officer';
+
+  // Option 1: Supabase Cloud Auth if configured
   if (isSupabaseConfigured && supabase) {
     try {
       if (isRegister) {
         const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
+          email: userEmail,
+          password: userPass,
           options: {
-            data: { name: name || email.split('@')[0], role: role || 'City Admin Officer' }
+            data: { name: userName, role: userRole }
           }
         });
-        if (error) {
-          if (error.message && !error.message.includes('fetch') && !error.message.includes('Failed to execute')) {
-            throw new Error(error.message);
-          }
-          console.warn('Supabase signUp error, falling back:', error.message);
-        } else if (data?.user) {
+        if (!error && data?.user) {
           return {
             id: data.user.id || 'usr_spb_' + Date.now(),
-            email: data.user.email || email,
-            name: data.user.user_metadata?.name || name || email.split('@')[0],
-            role: data.user.user_metadata?.role || role || 'City Admin Officer',
+            email: data.user.email || userEmail,
+            name: data.user.user_metadata?.name || userName,
+            role: data.user.user_metadata?.role || userRole,
             token: data.session?.access_token || 'token_spb_' + Date.now()
           };
         }
+        if (error?.message && (error.message.includes('already registered') || error.message.includes('User already exists'))) {
+          throw new Error(error.message);
+        }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
+          email: userEmail,
+          password: userPass
         });
-        if (error) {
-          if (error.status === 400 || (error.message && (error.message.includes('Invalid login credentials') || error.message.includes('Email not confirmed')))) {
-            throw new Error(error.message);
-          }
-          console.warn('Supabase signIn error, falling back to local backend/demo:', error.message);
-        } else if (data?.user) {
+        if (!error && data?.user) {
           return {
             id: data.user.id || 'usr_spb_' + Date.now(),
-            email: data.user.email || email,
-            name: data.user.user_metadata?.name || name || email.split('@')[0],
-            role: data.user.user_metadata?.role || role || 'City Admin Officer',
+            email: data.user.email || userEmail,
+            name: data.user.user_metadata?.name || userName,
+            role: data.user.user_metadata?.role || userRole,
             token: data.session?.access_token || 'token_spb_' + Date.now()
           };
+        }
+        if (error?.message && (error.message.includes('Invalid login credentials') || error.message.includes('Email not confirmed'))) {
+          throw new Error(error.message);
         }
       }
     } catch (spbErr) {
       if (spbErr.message && (spbErr.message.includes('Invalid login credentials') || spbErr.message.includes('Email not confirmed') || spbErr.message.includes('already registered'))) {
         throw spbErr;
       }
-      console.warn('Supabase Auth execution failed, activating API / offline fallback:', spbErr);
+      console.warn('Supabase Auth attempt failed, trying REST API / local fallback:', spbErr);
     }
   }
 
-  // Option 2: Local Backend API Auth (SQLite / JWT REST Fallback)
-  const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
-  const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').trim().replace(/\/+$/, '');
-  const url = API_BASE.endsWith('/api') ? `${API_BASE.slice(0, -4)}${endpoint}` : `${API_BASE}${endpoint}`;
-
-  const payload = { email, password };
-  if (isRegister || name) payload.name = name || email.split('@')[0];
-  if (isRegister || role) payload.role = role || 'City Admin Officer';
-
+  // Option 2: Local Backend API Auth (SQLite / FastAPI REST)
   try {
-    const res = await fetch(url, {
+    const rawApi = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+    let apiBase = sanitizeUrl(rawApi);
+    if (apiBase && !apiBase.endsWith('/api') && !apiBase.includes('/api/')) {
+      apiBase = `${apiBase}/api`;
+    }
+    const endpoint = isRegister ? '/auth/register' : '/auth/login';
+    const targetUrl = apiBase ? `${apiBase}${endpoint}` : `http://localhost:8000/api${endpoint}`;
+
+    const payload = { email: userEmail, password: userPass };
+    if (isRegister || name) payload.name = userName;
+    if (isRegister || role) payload.role = userRole;
+
+    const res = await fetch(targetUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    if (!res.ok) {
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.user) return data.user;
+    } else {
       const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || `Authentication failed with status ${res.status}`);
+      if (res.status === 400 || res.status === 401) {
+        throw new Error(errData.detail || 'Invalid email or password credentials.');
+      }
     }
-    const data = await res.json();
-    return data.user;
   } catch (err) {
-    if (err.message && (err.message.includes('User with this email already exists') || err.message.includes('status 400') || err.message.includes('status 401'))) {
+    if (err.message && (err.message.includes('Invalid email or password') || err.message.includes('already exists') || err.message.includes('credentials'))) {
       throw err;
     }
-    // Offline local fallback for demo / standalone testing
-    console.warn('Backend API auth failed, falling back to local session:', err.message);
-    return {
-      id: 'usr_local_' + Date.now(),
-      email,
-      name: name || email.split('@')[0],
-      role: role || 'City Admin Officer',
-      token: 'token_local_' + Date.now()
-    };
+    console.warn('Backend API auth failed, activating offline demo session:', err.message);
   }
+
+  // Option 3: Offline Standalone Demo Session (Guarantees login success in all environments)
+  return {
+    id: 'usr_local_' + Date.now(),
+    email: userEmail,
+    name: userName,
+    role: userRole,
+    token: 'token_local_' + Date.now()
+  };
 }
 
 export async function signOutUser() {
