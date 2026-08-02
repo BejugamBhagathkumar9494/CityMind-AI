@@ -17,7 +17,8 @@ import {
   GitBranch, 
   HelpCircle, 
   PieChart, 
-  MapPin 
+  MapPin,
+  Info
 } from 'lucide-react';
 import { fetchKMeansAnalytics, predictKMeansCluster } from '../services/api';
 
@@ -76,7 +77,7 @@ export default function KMeansModule() {
     return (
       <div className="min-h-[400px] flex flex-col items-center justify-center space-y-3 bg-white border border-slate-200 rounded-2xl p-12">
         <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-        <p className="text-xs font-bold text-slate-600">Executing Unsupervised K-Means Clustering Algorithm...</p>
+        <p className="text-xs font-bold text-slate-600">Analyzing Smart City Infrastructure & Complaint Patterns...</p>
       </div>
     );
   }
@@ -121,182 +122,266 @@ export default function KMeansModule() {
         <div>
           <div className="flex items-center gap-2">
             <Brain className="w-6 h-6 text-blue-600 animate-pulse" />
-            <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">🧠 K-Means Clustering Analytics</h1>
-            <span className="bg-purple-100 text-purple-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-purple-200">
-              Unsupervised Machine Learning
+            <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Smart City Asset & Hotspot Grouping</h1>
+            <span className="bg-purple-100 text-purple-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-purple-200 font-mono">
+              K-Means AI Pattern Engine
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Identify hidden infrastructure patterns and citizen complaint hotspots using Unsupervised Machine Learning.
+            CityMind AI automatically groups city roads, water pipes, and citizen complaints into 4 clear health categories—helping administrators know where to act first.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-blue-200 shrink-0 font-mono">
-            Optimal K = {kpis.optimal_k} | Silhouette = {kpis.silhouette_score}
+          <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-emerald-200 shrink-0 font-mono flex items-center gap-1.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>4 Smart Groups Identified (Grouping Quality: Excellent)</span>
           </span>
         </div>
       </div>
 
-      {/* OVERVIEW CARDS (6 KPI CARDS) */}
+      {/* OVERVIEW SUMMARY CARDS */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-card">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Infrastructure Assets</span>
           <div className="text-2xl font-black text-slate-900 mt-1">{kpis.total_assets}</div>
-          <span className="text-[10px] text-blue-600 font-semibold">Indexed Records</span>
+          <span className="text-[10px] text-blue-600 font-semibold">City Roads & Utilities</span>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-card">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Complaint Clusters</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Complaint Hotspot Zones</span>
           <div className="text-2xl font-black text-purple-600 mt-1">{kpis.total_complaint_clusters}</div>
-          <span className="text-[10px] text-purple-600 font-semibold">Hotspot Zones</span>
+          <span className="text-[10px] text-purple-600 font-semibold">High Issue Clusters</span>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-card">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Optimal Number of Clusters (K)</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Optimal Asset Groups (K)</span>
           <div className="text-2xl font-black text-blue-600 mt-1">{kpis.optimal_k}</div>
-          <span className="text-[10px] text-blue-600 font-semibold">Elbow + Silhouette</span>
+          <span className="text-[10px] text-blue-600 font-semibold">Health Categories</span>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-card">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Silhouette Score</span>
-          <div className="text-2xl font-black text-emerald-600 mt-1">{kpis.silhouette_score}</div>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Grouping Clarity Index</span>
+          <div className="text-2xl font-black text-emerald-600 mt-1">{kpis.silhouette_score} / 1.0</div>
           <span className="text-[10px] text-emerald-600 font-semibold">High Separation Quality</span>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-card">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">High Risk Clusters</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">High Priority Groups</span>
           <div className="text-2xl font-black text-red-600 mt-1">{kpis.high_risk_clusters}</div>
-          <span className="text-[10px] text-red-600 font-semibold">Critical & High Tiers</span>
+          <span className="text-[10px] text-red-600 font-semibold">Urgent & High Tiers</span>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-card">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Last Model Training Time</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Last AI Analysis Time</span>
           <div className="text-xs font-mono font-bold text-slate-800 mt-2">{kpis.last_training_time}</div>
-          <span className="text-[10px] text-slate-400 font-medium">Automated Pipeline</span>
+          <span className="text-[10px] text-slate-400 font-medium">Auto-Refreshed</span>
         </div>
       </div>
 
-      {/* SECTION 1: MACHINE LEARNING PIPELINE */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card space-y-4">
+      {/* ========================================================= */}
+      {/* 📊 GRAPH FIRST SECTION — PROMINENT VISUAL CLUSTER CHARTS */}
+      {/* ========================================================= */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card space-y-6">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <GitBranch className="w-5 h-5 text-blue-600" />
-            <h2 className="text-base font-extrabold text-slate-900">SECTION 1 — End-to-End Machine Learning Pipeline</h2>
+            <BarChart3 className="w-5 h-5 text-blue-600" />
+            <h2 className="text-base font-extrabold text-slate-900">📊 SECTION 1 — Visual Asset Grouping & Cluster Graphs</h2>
           </div>
-          <span className="text-[11px] font-bold text-slate-400 uppercase">Unified Intelligence Flow</span>
+          <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-200">
+            Interactive Visual Analytics
+          </span>
         </div>
 
-        {/* Workflow Diagram */}
-        <div className="overflow-x-auto pb-2">
-          <div className="flex items-center gap-2 min-w-[900px] text-xs font-bold">
-            {[
-              { label: 'Infrastructure Dataset', bg: 'bg-slate-100 text-slate-800 border-slate-200' },
-              { label: 'Data Cleaning', bg: 'bg-slate-100 text-slate-800 border-slate-200' },
-              { label: 'Feature Engineering', bg: 'bg-slate-100 text-slate-800 border-slate-200' },
-              { label: 'Feature Scaling', bg: 'bg-slate-100 text-slate-800 border-slate-200' },
-              { label: 'Dataset Split (70/15/15)', bg: 'bg-purple-50 text-purple-800 border-purple-200' },
-              { label: 'XGBoost Failure Prediction', bg: 'bg-blue-50 text-blue-800 border-blue-200' },
-              { label: 'Random Forest Priority', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200' },
-              { label: 'K-Means Clustering', bg: 'bg-purple-100 text-purple-900 border-purple-300 ring-2 ring-purple-400/30' },
-              { label: 'Dashboard + AI Agents', bg: 'bg-slate-900 text-white border-slate-900' }
-            ].map((node, idx, arr) => (
-              <React.Fragment key={node.label}>
-                <div className={`px-3 py-2 rounded-xl border font-semibold text-center shrink-0 shadow-xs ${node.bg}`}>
-                  {node.label}
+        {/* Top 2 Main Charts: Visual Cluster Scatter + Distribution */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* Chart 1: Visual Asset Cluster Map (Risk Score vs Condition Rating) */}
+          <div className="lg:col-span-7 bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Asset Health Scatter Map (Risk Score vs Condition)</h3>
+                <p className="text-[11px] text-slate-500">Each node represents a municipal asset grouped into 4 distinct health clusters.</p>
+              </div>
+              <span className="text-[10px] font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded">4 Distinct Groups</span>
+            </div>
+
+            {/* Visual Scatter Grid */}
+            <div className="h-56 bg-white border border-slate-200 rounded-xl p-4 relative flex flex-col justify-between overflow-hidden">
+              {/* Y Axis Guide */}
+              <div className="absolute left-2 top-2 bottom-6 flex flex-col justify-between text-[9px] font-mono text-slate-400">
+                <span>100 Risk</span>
+                <span>50 Risk</span>
+                <span>0 Risk</span>
+              </div>
+
+              {/* X Axis Guide */}
+              <div className="absolute left-12 right-4 bottom-1 flex justify-between text-[9px] font-mono text-slate-400 border-t border-slate-100 pt-1">
+                <span>1.0 Critical Cond</span>
+                <span>5.0 Fair</span>
+                <span>10.0 Good Cond</span>
+              </div>
+
+              {/* Nodes Scatter Representation */}
+              <div className="ml-10 mb-4 h-full relative">
+                {/* Cluster 3 Points (Red) */}
+                <div className="absolute top-[10%] left-[10%] w-4 h-4 rounded-full bg-red-500/80 ring-4 ring-red-200 animate-pulse flex items-center justify-center text-[8px] text-white font-bold" title="MG Road Flyover (Risk 92.5)">C3</div>
+                <div className="absolute top-[15%] left-[20%] w-3.5 h-3.5 rounded-full bg-red-500/80 ring-2 ring-red-200" title="Hospital Power Feed (Risk 88.2)" />
+                <div className="absolute top-[8%] left-[25%] w-3.5 h-3.5 rounded-full bg-red-500/80" />
+
+                {/* Cluster 2 Points (Amber) */}
+                <div className="absolute top-[30%] left-[35%] w-4 h-4 rounded-full bg-amber-500/80 ring-4 ring-amber-200 flex items-center justify-center text-[8px] text-white font-bold" title="Water Main Sec 12 (Risk 84.0)">C2</div>
+                <div className="absolute top-[28%] left-[45%] w-3.5 h-3.5 rounded-full bg-amber-500/80 ring-2 ring-amber-200" />
+                <div className="absolute top-[35%] left-[40%] w-3.5 h-3.5 rounded-full bg-amber-500/80" />
+
+                {/* Cluster 1 Points (Blue) */}
+                <div className="absolute top-[55%] left-[60%] w-4 h-4 rounded-full bg-blue-500/80 ring-4 ring-blue-200 flex items-center justify-center text-[8px] text-white font-bold" title="Outer Ring Road (Risk 68.5)">C1</div>
+                <div className="absolute top-[60%] left-[65%] w-3.5 h-3.5 rounded-full bg-blue-500/80" />
+
+                {/* Cluster 0 Points (Green) */}
+                <div className="absolute top-[80%] left-[85%] w-4 h-4 rounded-full bg-emerald-500/80 ring-4 ring-emerald-200 flex items-center justify-center text-[8px] text-white font-bold" title="BRT Transit Hub (Risk 38.0)">C0</div>
+                <div className="absolute top-[85%] left-[80%] w-3.5 h-3.5 rounded-full bg-emerald-500/80" />
+                <div className="absolute top-[78%] left-[90%] w-3.5 h-3.5 rounded-full bg-emerald-500/80" />
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div className="flex flex-wrap items-center justify-between text-[11px] font-bold pt-1">
+              <span className="flex items-center gap-1.5 text-red-700"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /> C3: Critical Infrastructure (Risk 85+)</span>
+              <span className="flex items-center gap-1.5 text-amber-700"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> C2: High Risk Assets (Risk 70-84)</span>
+              <span className="flex items-center gap-1.5 text-blue-700"><span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> C1: Moderate Risk (Risk 45-69)</span>
+              <span className="flex items-center gap-1.5 text-emerald-700"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> C0: Healthy Assets (Risk &lt;45)</span>
+            </div>
+          </div>
+
+          {/* Chart 2: Asset Distribution & Population Impact Bars */}
+          <div className="lg:col-span-5 bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
+            <div>
+              <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Asset Distribution & Population Reach</h3>
+              <p className="text-[11px] text-slate-500">Breakdown of city assets and citizens protected by each cluster tier.</p>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <div className="flex justify-between font-bold text-red-700 mb-1">
+                  <span>Group 3: Critical Infrastructure</span>
+                  <span>15% (77,000 Citizens)</span>
                 </div>
-                {idx < arr.length - 1 && <ArrowRight className="w-4 h-4 text-slate-400 shrink-0" />}
-              </React.Fragment>
-            ))}
+                <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-red-500 rounded-full" style={{ width: '15%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between font-bold text-amber-700 mb-1">
+                  <span>Group 2: High Risk Assets</span>
+                  <span>22% (73,000 Citizens)</span>
+                </div>
+                <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-500 rounded-full" style={{ width: '22%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between font-bold text-blue-700 mb-1">
+                  <span>Group 1: Moderate Risk Assets</span>
+                  <span>25% (45,000 Citizens)</span>
+                </div>
+                <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: '25%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between font-bold text-emerald-700 mb-1">
+                  <span>Group 0: Healthy Assets</span>
+                  <span>38% (30,000 Citizens)</span>
+                </div>
+                <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: '38%' }} />
+                </div>
+              </div>
+            </div>
+
+            <div className="p-3 bg-white border border-slate-200 rounded-xl text-[11px] text-slate-700 font-medium">
+              <strong className="text-slate-900 block font-extrabold">Executive Takeaway:</strong>
+              Groups 3 & 2 cover 37% of assets but protect over 150,000 daily commuters and hospital patients.
+            </div>
           </div>
+
+        </div>
+
+        {/* Technical Quality Charts (Elbow & Silhouette Curve) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+          
+          {/* Elbow Curve Chart */}
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-extrabold text-slate-900 uppercase">Elbow Method Chart (Finding Best Group Count)</span>
+              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Elbow Point K=4</span>
+            </div>
+            <p className="text-[11px] text-slate-500">Shows how group error drops sharply at K=4, confirming 4 is the optimal number of health categories.</p>
+            
+            <div className="h-36 flex items-end justify-between gap-2 pt-4 pb-2 px-3 bg-white border border-slate-200 rounded-xl">
+              {(data?.elbow_curve || []).map(pt => {
+                const maxInertia = 500;
+                const hPct = Math.round((pt.inertia / maxInertia) * 100);
+                return (
+                  <div key={pt.k} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                    <span className="text-[9px] font-mono font-bold text-slate-600">{pt.inertia}</span>
+                    <div 
+                      className={`w-full rounded-t-md transition-all ${pt.k === 4 ? 'bg-blue-600 ring-2 ring-blue-400' : 'bg-slate-300'}`}
+                      style={{ height: `${hPct}%` }}
+                    />
+                    <span className="text-[9px] font-bold text-slate-700">K={pt.k}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Silhouette Score Chart */}
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-extrabold text-slate-900 uppercase">Silhouette Score Chart (Grouping Clarity)</span>
+              <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded">Peak Score 0.74 at K=4</span>
+            </div>
+            <p className="text-[11px] text-slate-500">Higher scores mean clearer boundaries between health groups. Peak score is 0.74 at K=4.</p>
+
+            <div className="h-36 flex items-end justify-between gap-2 pt-4 pb-2 px-3 bg-white border border-slate-200 rounded-xl">
+              {(data?.silhouette_scores || []).map(pt => {
+                const hPct = Math.round((pt.score / 1.0) * 100);
+                return (
+                  <div key={pt.k} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                    <span className="text-[9px] font-mono font-bold text-purple-700">{pt.score}</span>
+                    <div 
+                      className={`w-full rounded-t-md transition-all ${pt.k === 4 ? 'bg-purple-600 ring-2 ring-purple-400' : 'bg-purple-300'}`}
+                      style={{ height: `${hPct}%` }}
+                    />
+                    <span className="text-[9px] font-bold text-slate-700">K={pt.k}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
         </div>
       </div>
 
-      {/* SECTION 2: DATASET INFORMATION */}
+      {/* ========================================================= */}
+      {/* SECTION 2: 4 CLEAR CITY HEALTH GROUPS & ASSET TABLES */}
+      {/* ========================================================= */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card space-y-5">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div className="flex items-center gap-2">
-            <Database className="w-5 h-5 text-blue-600" />
-            <h2 className="text-base font-extrabold text-slate-900">SECTION 2 — Dataset Information & Train/Val/Test Partitioning</h2>
-          </div>
-          <span className="text-[11px] font-bold text-slate-400">Total Samples: {split.total_samples.toLocaleString()}</span>
-        </div>
-
-        {/* 3 Dataset Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-blue-50/70 border border-blue-200 rounded-2xl p-5 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-blue-900">Training Dataset</span>
-              <span className="text-xl font-black text-blue-600">{split.train_pct}%</span>
-            </div>
-            <p className="text-xs text-blue-800 leading-relaxed font-medium">
-              <strong>Purpose:</strong> Used to train the supervised machine learning models (XGBoost Failure Risk and Random Forest Priority Classifier).
-            </p>
-            <div className="pt-2 text-[11px] font-mono font-bold text-blue-700">
-              {split.train_samples.toLocaleString()} Samples Allocated
-            </div>
-          </div>
-
-          <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-5 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-amber-900">Validation Dataset</span>
-              <span className="text-xl font-black text-amber-600">{split.val_pct}%</span>
-            </div>
-            <p className="text-xs text-amber-800 leading-relaxed font-medium">
-              <strong>Purpose:</strong> Used for hyperparameter tuning, model selection, Elbow/Silhouette optimization, and preventing overfitting.
-            </p>
-            <div className="pt-2 text-[11px] font-mono font-bold text-amber-700">
-              {split.val_samples.toLocaleString()} Samples Allocated
-            </div>
-          </div>
-
-          <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-5 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-emerald-900">Testing Dataset</span>
-              <span className="text-xl font-black text-emerald-600">{split.test_pct}%</span>
-            </div>
-            <p className="text-xs text-emerald-800 leading-relaxed font-medium">
-              <strong>Purpose:</strong> Completely unseen data used only for final unbiased evaluation of overall model performance and generalization.
-            </p>
-            <div className="pt-2 text-[11px] font-mono font-bold text-emerald-700">
-              {split.test_samples.toLocaleString()} Samples Allocated
-            </div>
-          </div>
-        </div>
-
-        {/* Breakdown Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs font-medium">
-          <div>
-            <span className="text-slate-400 font-bold block uppercase text-[10px]">Total Samples</span>
-            <strong className="text-slate-900 text-base font-extrabold">{split.total_samples.toLocaleString()}</strong>
-          </div>
-          <div>
-            <span className="text-slate-400 font-bold block uppercase text-[10px]">Training Samples</span>
-            <strong className="text-blue-600 text-base font-extrabold">{split.train_samples.toLocaleString()}</strong>
-          </div>
-          <div>
-            <span className="text-slate-400 font-bold block uppercase text-[10px]">Validation Samples</span>
-            <strong className="text-amber-600 text-base font-extrabold">{split.val_samples.toLocaleString()}</strong>
-          </div>
-          <div>
-            <span className="text-slate-400 font-bold block uppercase text-[10px]">Testing Samples</span>
-            <strong className="text-emerald-600 text-base font-extrabold">{split.test_samples.toLocaleString()}</strong>
-          </div>
-        </div>
-      </div>
-
-      {/* SECTION 3: INFRASTRUCTURE ASSET CLUSTERING */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-3">
           <div>
-            <h2 className="text-base font-extrabold text-slate-900">SECTION 3 — Infrastructure Asset Clustering</h2>
+            <h2 className="text-base font-extrabold text-slate-900">SECTION 2 — Smart City Asset Grouping Register</h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Features: Asset Age, Condition Score, Maintenance Cost, Failure History, Traffic Density, Population Impact, Risk Score.
+              Grouped using 7 features: Asset Age, Condition Rating, Maintenance Cost, Failure History, Traffic Volume, Citizen Impact, and Risk Score.
             </p>
           </div>
 
           <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs shrink-0">
-            <span className="text-[10px] font-bold text-slate-400 px-2 uppercase">Filter:</span>
+            <span className="text-[10px] font-bold text-slate-400 px-2 uppercase">Filter Group:</span>
             {['All', '3', '2', '1', '0'].map(cid => (
               <button
                 key={cid}
@@ -305,45 +390,52 @@ export default function KMeansModule() {
                   assetFilter === cid ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                {cid === 'All' ? 'All Assets' : `Cluster ${cid}`}
+                {cid === 'All' ? 'All Assets' : `Group ${cid}`}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Cluster Labels Banner */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-          <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-emerald-500 shrink-0" />
-            <div>
-              <strong className="text-emerald-900 block font-extrabold">Cluster 0</strong>
-              <span className="text-[11px] text-emerald-700 font-medium">Healthy Assets</span>
+        {/* 4 Health Category Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div className="p-3 bg-red-50 border border-red-200 rounded-xl space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-red-500 shrink-0" />
+              <strong className="text-red-900 font-extrabold">Group 3: Critical</strong>
             </div>
+            <span className="text-[11px] text-red-700 font-bold block">Immediate Repair Required</span>
+            <p className="text-[10px] text-slate-600">Oldest bridges & broken mains with 85%+ risk.</p>
           </div>
-          <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-blue-500 shrink-0" />
-            <div>
-              <strong className="text-blue-900 block font-extrabold">Cluster 1</strong>
-              <span className="text-[11px] text-blue-700 font-medium">Moderate Risk Assets</span>
+
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-amber-500 shrink-0" />
+              <strong className="text-amber-900 font-extrabold">Group 2: High Risk</strong>
             </div>
+            <span className="text-[11px] text-amber-700 font-bold block">Increase Inspection Frequency</span>
+            <p className="text-[10px] text-slate-600">Pothole corridors & power substations under high load.</p>
           </div>
-          <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-amber-500 shrink-0" />
-            <div>
-              <strong className="text-amber-900 block font-extrabold">Cluster 2</strong>
-              <span className="text-[11px] text-amber-700 font-medium">High Risk Assets</span>
+
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-blue-500 shrink-0" />
+              <strong className="text-blue-900 font-extrabold">Group 1: Moderate Risk</strong>
             </div>
+            <span className="text-[11px] text-blue-700 font-bold block">Schedule Preventive Service</span>
+            <p className="text-[10px] text-slate-600">Assets due for maintenance within 30 days.</p>
           </div>
-          <div className="p-2.5 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-red-500 shrink-0" />
-            <div>
-              <strong className="text-red-900 block font-extrabold">Cluster 3</strong>
-              <span className="text-[11px] text-red-700 font-medium">Critical Infrastructure</span>
+
+          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-emerald-500 shrink-0" />
+              <strong className="text-emerald-900 font-extrabold">Group 0: Healthy Assets</strong>
             </div>
+            <span className="text-[11px] text-emerald-700 font-bold block">Routine Monitoring</span>
+            <p className="text-[10px] text-slate-600">Newly resurfaced roads & upgraded grid feeders.</p>
           </div>
         </div>
 
-        {/* Table */}
+        {/* Asset Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px]">
@@ -351,9 +443,9 @@ export default function KMeansModule() {
                 <th className="p-3">Asset ID</th>
                 <th className="p-3">Asset Name</th>
                 <th className="p-3">Cluster ID</th>
-                <th className="p-3">Cluster Name</th>
+                <th className="p-3">Group Category Name</th>
                 <th className="p-3">Risk Score</th>
-                <th className="p-3">Priority</th>
+                <th className="p-3">Priority Level</th>
                 <th className="p-3">Recommended Action</th>
               </tr>
             </thead>
@@ -364,9 +456,9 @@ export default function KMeansModule() {
                   <tr key={asset.id} className="hover:bg-slate-50">
                     <td className="p-3 font-mono font-bold text-slate-900">{asset.id}</td>
                     <td className="p-3 font-extrabold text-slate-900">{asset.name}</td>
-                    <td className="p-3 font-mono font-bold text-blue-600">Cluster {asset.cluster_id}</td>
+                    <td className="p-3 font-mono font-bold text-blue-600">Group {asset.cluster_id}</td>
                     <td className="p-3">
-                      <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md border ${badge.bg}`}>
+                      <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-md border ${badge.bg}`}>
                         {asset.cluster_name}
                       </span>
                     </td>
@@ -381,17 +473,19 @@ export default function KMeansModule() {
         </div>
       </div>
 
-      {/* SECTION 4: CITIZEN COMPLAINT HOTSPOT CLUSTERING */}
+      {/* ========================================================= */}
+      {/* SECTION 3: CITIZEN COMPLAINT HOTSPOT CLUSTERING */}
+      {/* ========================================================= */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
-            <h2 className="text-base font-extrabold text-slate-900">SECTION 4 — Citizen Complaint Hotspot Clustering</h2>
+            <h2 className="text-base font-extrabold text-slate-900">SECTION 3 — Citizen Complaint Hotspot Clustering</h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Features: Latitude, Longitude, Complaint Count, Complaint Severity, Population Density, Upvotes, Frequency.
+              Identifies geographic complaint hotspots using GPS Location, Complaint Density, Upvotes, and Severity.
             </p>
           </div>
           <span className="bg-purple-50 text-purple-700 text-xs font-bold px-2.5 py-0.5 rounded-full border border-purple-200">
-            Spatial Clustering Active
+            Spatial AI Hotspots Active
           </span>
         </div>
 
@@ -400,7 +494,7 @@ export default function KMeansModule() {
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px]">
               <tr>
                 <th className="p-3">Cluster ID</th>
-                <th className="p-3">Geographic Area / Zone</th>
+                <th className="p-3">Geographic Zone / Area</th>
                 <th className="p-3">Complaint Count</th>
                 <th className="p-3">Hotspot Level</th>
                 <th className="p-3">Recommended Action</th>
@@ -409,11 +503,11 @@ export default function KMeansModule() {
             <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
               {complaintHotspots.map(spot => (
                 <tr key={spot.cluster_id} className="hover:bg-slate-50">
-                  <td className="p-3 font-mono font-bold text-slate-900">Cluster {spot.cluster_id}</td>
+                  <td className="p-3 font-mono font-bold text-slate-900">Group {spot.cluster_id}</td>
                   <td className="p-3 font-extrabold text-slate-900">{spot.area}</td>
                   <td className="p-3 font-bold text-blue-600">{spot.complaint_count} Complaints</td>
                   <td className="p-3">
-                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md border ${
+                    <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-md border ${
                       spot.hotspot_level === 'High Complaint Zone' ? 'bg-red-100 text-red-800 border-red-200' :
                       spot.hotspot_level === 'Medium Complaint Zone' ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-blue-100 text-blue-800 border-blue-200'
                     }`}>
@@ -428,343 +522,335 @@ export default function KMeansModule() {
         </div>
       </div>
 
-      {/* SECTION 5: MODEL EVALUATION */}
+      {/* ========================================================= */}
+      {/* SECTION 4: AI INSIGHTS & RECOMMENDATION ACTION PANELS */}
+      {/* ========================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Left 6 Cols: AI Insights */}
+        <div className="lg:col-span-6 bg-white border border-slate-200 rounded-2xl p-6 shadow-card space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-blue-600 animate-pulse" />
+              <h3 className="text-sm font-extrabold text-slate-900">SECTION 4 — AI Generated Group Insights</h3>
+            </div>
+            <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded">Auto Synthesized</span>
+          </div>
+
+          <div className="space-y-3 text-xs">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl space-y-1">
+              <strong className="text-red-900 font-extrabold block">Group 3 (Critical Bridges):</strong>
+              <p className="text-slate-700 leading-relaxed">
+                Contains the oldest bridges and flyovers with highest failure probability (88%+), requiring immediate structural reinforcement.
+              </p>
+            </div>
+
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
+              <strong className="text-amber-900 font-extrabold block">Group 2 (High Risk Water Lines):</strong>
+              <p className="text-slate-700 leading-relaxed">
+                Exhibits rapidly increasing complaint density (319+ complaints) and cast-iron pipe joint degradation in Sector 12.
+              </p>
+            </div>
+
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1">
+              <strong className="text-emerald-900 font-extrabold block">Group 0 (Healthy Assets):</strong>
+              <p className="text-slate-700 leading-relaxed">
+                Contains recently maintained infrastructure (BRT Transit & Substation feeders) requiring only routine quarterly monitoring.
+              </p>
+            </div>
+
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-1">
+              <strong className="text-blue-900 font-extrabold block">Group 1 (Moderate Risk Corridors):</strong>
+              <p className="text-slate-700 leading-relaxed">
+                Contains heavy freight corridors requiring preventive bituminous resurfacing before monsoon season.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right 6 Cols: AI Action Recommendation Panel */}
+        <div className="lg:col-span-6 bg-white border border-slate-200 rounded-2xl p-6 shadow-card space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <Layers className="w-4 h-4 text-blue-600" />
+              <h3 className="text-sm font-extrabold text-slate-900">SECTION 5 — AI Action Recommendation Matrix</h3>
+            </div>
+            <span className="text-[10px] font-bold text-slate-400">Action Rules</span>
+          </div>
+
+          <div className="space-y-3 text-xs">
+            <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between">
+              <div>
+                <strong className="text-red-900 font-extrabold block">Group 3 (Critical Tier)</strong>
+                <span className="text-[11px] text-slate-600">Dispatch engineering team within 24 hours.</span>
+              </div>
+              <span className="bg-red-600 text-white font-extrabold text-[10px] px-2.5 py-1 rounded-lg shrink-0">
+                Immediate Inspection Required
+              </span>
+            </div>
+
+            <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
+              <div>
+                <strong className="text-amber-900 font-extrabold block">Group 2 (High Risk Tier)</strong>
+                <span className="text-[11px] text-slate-600">Increase checks from monthly to bi-weekly.</span>
+              </div>
+              <span className="bg-amber-600 text-white font-extrabold text-[10px] px-2.5 py-1 rounded-lg shrink-0">
+                Increase Inspection Frequency
+              </span>
+            </div>
+
+            <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between">
+              <div>
+                <strong className="text-blue-900 font-extrabold block">Group 1 (Moderate Risk Tier)</strong>
+                <span className="text-[11px] text-slate-600">Schedule maintenance within 30-day capital plan.</span>
+              </div>
+              <span className="bg-blue-600 text-white font-extrabold text-[10px] px-2.5 py-1 rounded-lg shrink-0">
+                Schedule Preventive Maintenance
+              </span>
+            </div>
+
+            <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
+              <div>
+                <strong className="text-emerald-900 font-extrabold block">Group 0 (Healthy Tier)</strong>
+                <span className="text-[11px] text-slate-600">Maintain standard sensor telemetry monitoring.</span>
+              </div>
+              <span className="bg-emerald-600 text-white font-extrabold text-[10px] px-2.5 py-1 rounded-lg shrink-0">
+                Routine Monitoring
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ========================================================= */}
+      {/* SECTION 5: HOW AI LEARNS & DATASET PARTITIONING (70/15/15) */}
+      {/* ========================================================= */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <Database className="w-5 h-5 text-blue-600" />
+            <h2 className="text-base font-extrabold text-slate-900">SECTION 6 — Simple Guide: How AI Learns from Municipal Datasets</h2>
+          </div>
+          <span className="text-[11px] font-bold text-slate-400">Total Samples: {split.total_samples.toLocaleString()}</span>
+        </div>
+
+        <p className="text-xs text-slate-600 leading-relaxed">
+          To ensure accurate predictions without memory bias, CityMind AI divides incoming municipal dataset records into 3 distinct sets:
+        </p>
+
+        {/* 3 Dataset Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-blue-50/70 border border-blue-200 rounded-2xl p-5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-extrabold text-blue-900">1. Training Data</span>
+              <span className="text-xl font-black text-blue-600">{split.train_pct}%</span>
+            </div>
+            <p className="text-xs text-blue-800 leading-relaxed font-medium">
+              <strong>Purpose:</strong> Used to teach the AI models (XGBoost Failure Risk and Random Forest Priority Classifier) historical failure patterns.
+            </p>
+            <div className="pt-2 text-[11px] font-mono font-bold text-blue-700">
+              {split.train_samples.toLocaleString()} Records
+            </div>
+          </div>
+
+          <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-extrabold text-amber-900">2. Tuning Data</span>
+              <span className="text-xl font-black text-amber-600">{split.val_pct}%</span>
+            </div>
+            <p className="text-xs text-amber-800 leading-relaxed font-medium">
+              <strong>Purpose:</strong> Used to fine-tune AI group boundaries and prevent false alarm alerts.
+            </p>
+            <div className="pt-2 text-[11px] font-mono font-bold text-amber-700">
+              {split.val_samples.toLocaleString()} Records
+            </div>
+          </div>
+
+          <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-extrabold text-emerald-900">3. Testing Data</span>
+              <span className="text-xl font-black text-emerald-600">{split.test_pct}%</span>
+            </div>
+            <p className="text-xs text-emerald-800 leading-relaxed font-medium">
+              <strong>Purpose:</strong> Unseen fresh data reserved exclusively to verify AI prediction accuracy before deployment.
+            </p>
+            <div className="pt-2 text-[11px] font-mono font-bold text-emerald-700">
+              {split.test_samples.toLocaleString()} Records
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================= */}
+      {/* SECTION 6: MULTI-MODEL PERFORMANCE METRICS */}
+      {/* ========================================================= */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
             <Activity className="w-5 h-5 text-blue-600" />
-            <h2 className="text-base font-extrabold text-slate-900">SECTION 5 — Multi-Model Evaluation & Performance Comparison</h2>
+            <h2 className="text-base font-extrabold text-slate-900">SECTION 7 — Accuracy Benchmark Across AI Engines</h2>
           </div>
           <span className="text-[11px] font-bold text-slate-400">Benchmarked Models</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* K-Means Card */}
           <div className="bg-purple-50/50 border border-purple-200 rounded-2xl p-5 space-y-3">
             <div className="flex items-center justify-between border-b border-purple-200 pb-2">
-              <span className="text-xs font-extrabold text-purple-900 flex items-center gap-1.5">
-                <Brain className="w-4 h-4 text-purple-600" />
-                <span>K-Means Clustering</span>
-              </span>
+              <span className="text-xs font-extrabold text-purple-900">K-Means Pattern Engine</span>
               <span className="text-[10px] bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded">Unsupervised</span>
             </div>
-
-            <div className="space-y-2 text-xs font-semibold">
-              <div className="flex justify-between">
-                <span className="text-slate-600">Silhouette Score:</span>
-                <strong className="text-purple-950 font-black">{evalMetrics.kmeans.silhouette_score}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600">Inertia:</span>
-                <strong className="text-purple-950 font-black">{evalMetrics.kmeans.inertia}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600">Optimal K:</span>
-                <strong className="text-purple-950 font-black">{evalMetrics.kmeans.optimal_k}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600">Number of Clusters:</span>
-                <strong className="text-purple-950 font-black">{evalMetrics.kmeans.number_of_clusters}</strong>
-              </div>
-              <div className="flex justify-between pt-1 border-t border-purple-200 text-[10px] font-mono">
-                <span className="text-slate-500">Last Training:</span>
-                <span className="text-slate-700">{evalMetrics.kmeans.last_training_time}</span>
-              </div>
+            <div className="space-y-1.5 text-xs font-semibold">
+              <div className="flex justify-between"><span>Clarity Score:</span><strong className="text-purple-950 font-black">{evalMetrics.kmeans.silhouette_score}</strong></div>
+              <div className="flex justify-between"><span>Inertia Error:</span><strong className="text-purple-950 font-black">{evalMetrics.kmeans.inertia}</strong></div>
+              <div className="flex justify-between"><span>Groups (K):</span><strong className="text-purple-950 font-black">{evalMetrics.kmeans.optimal_k}</strong></div>
             </div>
           </div>
 
-          {/* XGBoost Card */}
           <div className="bg-blue-50/50 border border-blue-200 rounded-2xl p-5 space-y-3">
             <div className="flex items-center justify-between border-b border-blue-200 pb-2">
-              <span className="text-xs font-extrabold text-blue-900 flex items-center gap-1.5">
-                <Cpu className="w-4 h-4 text-blue-600" />
-                <span>XGBoost Failure Risk</span>
-              </span>
+              <span className="text-xs font-extrabold text-blue-900">XGBoost Risk Engine</span>
               <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded">Supervised</span>
             </div>
-
-            <div className="space-y-2 text-xs font-semibold">
-              <div className="flex justify-between">
-                <span className="text-slate-600">Accuracy:</span>
-                <strong className="text-blue-950 font-black">{evalMetrics.xgboost.accuracy}%</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600">Precision:</span>
-                <strong className="text-blue-950 font-black">{evalMetrics.xgboost.precision}%</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600">Recall:</span>
-                <strong className="text-blue-950 font-black">{evalMetrics.xgboost.recall}%</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600">F1 Score:</span>
-                <strong className="text-blue-950 font-black">{evalMetrics.xgboost.f1_score}%</strong>
-              </div>
-              <div className="flex justify-between pt-1 border-t border-blue-200 text-[11px]">
-                <span className="text-slate-600">ROC AUC Score:</span>
-                <strong className="text-blue-950 font-black">{evalMetrics.xgboost.roc_auc}</strong>
-              </div>
+            <div className="space-y-1.5 text-xs font-semibold">
+              <div className="flex justify-between"><span>Accuracy:</span><strong className="text-blue-950 font-black">{evalMetrics.xgboost.accuracy}%</strong></div>
+              <div className="flex justify-between"><span>Precision:</span><strong className="text-blue-950 font-black">{evalMetrics.xgboost.precision}%</strong></div>
+              <div className="flex justify-between"><span>ROC AUC:</span><strong className="text-blue-950 font-black">{evalMetrics.xgboost.roc_auc}</strong></div>
             </div>
           </div>
 
-          {/* Random Forest Card */}
           <div className="bg-emerald-50/50 border border-emerald-200 rounded-2xl p-5 space-y-3">
             <div className="flex items-center justify-between border-b border-emerald-200 pb-2">
-              <span className="text-xs font-extrabold text-emerald-900 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-emerald-600" />
-                <span>Random Forest Classifier</span>
-              </span>
+              <span className="text-xs font-extrabold text-emerald-900">Random Forest Classifier</span>
               <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Supervised</span>
             </div>
-
-            <div className="space-y-2 text-xs font-semibold">
-              <div className="flex justify-between">
-                <span className="text-slate-600">Accuracy:</span>
-                <strong className="text-emerald-950 font-black">{evalMetrics.random_forest.accuracy}%</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600">Precision:</span>
-                <strong className="text-emerald-950 font-black">{evalMetrics.random_forest.precision}%</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600">Recall:</span>
-                <strong className="text-emerald-950 font-black">{evalMetrics.random_forest.recall}%</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600">F1 Score:</span>
-                <strong className="text-emerald-950 font-black">{evalMetrics.random_forest.f1_score}%</strong>
-              </div>
-              <div className="flex justify-between pt-1 border-t border-emerald-200 text-[11px]">
-                <span className="text-slate-600">Feature Importance:</span>
-                <strong className="text-emerald-950 font-black">Risk Score (42%)</strong>
-              </div>
+            <div className="space-y-1.5 text-xs font-semibold">
+              <div className="flex justify-between"><span>Accuracy:</span><strong className="text-emerald-950 font-black">{evalMetrics.random_forest.accuracy}%</strong></div>
+              <div className="flex justify-between"><span>Precision:</span><strong className="text-emerald-950 font-black">{evalMetrics.random_forest.precision}%</strong></div>
+              <div className="flex justify-between"><span>F1 Score:</span><strong className="text-emerald-950 font-black">{evalMetrics.random_forest.f1_score}%</strong></div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* SECTION 6: VISUALIZATIONS */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card space-y-6">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-blue-600" />
-            <h2 className="text-base font-extrabold text-slate-900">SECTION 6 — Interactive Visualizations & Clustering Curves</h2>
-          </div>
-          <span className="text-[11px] font-bold text-slate-400">7 Interactive Data Views</span>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* Elbow Curve Chart */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-extrabold text-slate-900 uppercase">1. Elbow Curve (Inertia vs K)</span>
-              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Elbow at K=4</span>
-            </div>
-            <div className="h-44 flex items-end justify-between gap-3 pt-6 pb-2 px-4 bg-white border border-slate-200 rounded-xl">
-              {(data?.elbow_curve || []).map(pt => {
-                const maxInertia = 500;
-                const hPct = Math.round((pt.inertia / maxInertia) * 100);
-                return (
-                  <div key={pt.k} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
-                    <span className="text-[10px] font-mono font-bold text-slate-600">{pt.inertia}</span>
-                    <div 
-                      className={`w-full rounded-t-lg transition-all ${pt.k === 4 ? 'bg-blue-600 ring-2 ring-blue-400' : 'bg-slate-300'}`}
-                      style={{ height: `${hPct}%` }}
-                    />
-                    <span className="text-[10px] font-bold text-slate-700">K={pt.k}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Silhouette Score Chart */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-extrabold text-slate-900 uppercase">2. Silhouette Score vs K</span>
-              <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded">Peak Score 0.74 at K=4</span>
-            </div>
-            <div className="h-44 flex items-end justify-between gap-3 pt-6 pb-2 px-4 bg-white border border-slate-200 rounded-xl">
-              {(data?.silhouette_scores || []).map(pt => {
-                const hPct = Math.round((pt.score / 1.0) * 100);
-                return (
-                  <div key={pt.k} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
-                    <span className="text-[10px] font-mono font-bold text-purple-700">{pt.score}</span>
-                    <div 
-                      className={`w-full rounded-t-lg transition-all ${pt.k === 4 ? 'bg-purple-600 ring-2 ring-purple-400' : 'bg-purple-300'}`}
-                      style={{ height: `${hPct}%` }}
-                    />
-                    <span className="text-[10px] font-bold text-slate-700">K={pt.k}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-        </div>
-
-        {/* Additional 5 Metrics Visual Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2">
-          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-            <span className="text-[10px] font-bold text-slate-400 uppercase block">3. Asset Cluster Dist</span>
-            <div className="text-sm font-extrabold text-slate-900 mt-1">C0: 38% | C1: 25% | C2: 22% | C3: 15%</div>
-          </div>
-
-          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-            <span className="text-[10px] font-bold text-slate-400 uppercase block">4. Complaint Cluster Dist</span>
-            <div className="text-sm font-extrabold text-purple-900 mt-1">Zone 0: 60% | Zone 1: 28% | Zone 2: 12%</div>
-          </div>
-
-          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-            <span className="text-[10px] font-bold text-slate-400 uppercase block">5. Avg Risk by Cluster</span>
-            <div className="text-sm font-extrabold text-red-600 mt-1">C3: 90.3 | C2: 81.2 | C1: 68.5 | C0: 38.0</div>
-          </div>
-
-          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-            <span className="text-[10px] font-bold text-slate-400 uppercase block">6. Population Reach</span>
-            <div className="text-sm font-extrabold text-blue-600 mt-1">C3: 77,000 | C2: 73,000 Citizens</div>
-          </div>
-
-          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-            <span className="text-[10px] font-bold text-slate-400 uppercase block">7. High Risk Asset %</span>
-            <div className="text-sm font-extrabold text-amber-600 mt-1">37.0% Total Portfolio Risk</div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* SECTION 7: AI GENERATED CLUSTER INSIGHTS */}
+      {/* ========================================================= */}
+      {/* LIVE SINGLE ASSET CLUSTER CALCULATOR */}
+      {/* ========================================================= */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-blue-600 animate-spin" />
-            <h2 className="text-base font-extrabold text-slate-900">SECTION 7 — AI Generated Cluster Insights</h2>
+            <Activity className="w-4 h-4 text-blue-600" />
+            <h3 className="text-sm font-extrabold text-slate-900">Test Single Asset AI Group Classifier</h3>
           </div>
-          <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-200">
-            Automated Pattern Synthesis
+          <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200 font-mono">
+            POST /api/ml/kmeans/predict
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium">
-          <div className="p-4 bg-red-50 border border-red-200 rounded-2xl space-y-1">
-            <div className="flex items-center gap-2 text-red-900 font-extrabold">
-              <ShieldAlert className="w-4 h-4 text-red-600" />
-              <span>Cluster 3 Insight</span>
-            </div>
-            <p className="text-slate-700 leading-relaxed">
-              Cluster 3 contains the oldest bridges and flyovers with the highest failure probability (88%+), demanding immediate structural reinforcement.
-            </p>
+        <form onSubmit={handleTestPrediction} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Asset ID</label>
+            <input
+              type="text"
+              value={testForm.asset_id}
+              onChange={(e) => setTestForm({ ...testForm, asset_id: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
 
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-1">
-            <div className="flex items-center gap-2 text-amber-900 font-extrabold">
-              <AlertTriangle className="w-4 h-4 text-amber-600" />
-              <span>Cluster 2 Insight</span>
-            </div>
-            <p className="text-slate-700 leading-relaxed">
-              Cluster 2 exhibits rapidly increasing complaint density (319+ complaints) and cast-iron pipe joint degradation in Sector 12.
-            </p>
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Risk Score (0-100)</label>
+            <input
+              type="number"
+              step="0.1"
+              value={testForm.risk_score}
+              onChange={(e) => setTestForm({ ...testForm, risk_score: parseFloat(e.target.value) || 0 })}
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-extrabold text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
 
-          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-1">
-            <div className="flex items-center gap-2 text-emerald-900 font-extrabold">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Cluster 0 Insight</span>
-            </div>
-            <p className="text-slate-700 leading-relaxed">
-              Cluster 0 contains recently maintained infrastructure (BRT Transit & Substation feeders) requiring only routine quarterly monitoring.
-            </p>
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Condition Rating (1-10)</label>
+            <input
+              type="number"
+              step="0.1"
+              value={testForm.condition_rating}
+              onChange={(e) => setTestForm({ ...testForm, condition_rating: parseFloat(e.target.value) || 0 })}
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
 
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl space-y-1">
-            <div className="flex items-center gap-2 text-blue-900 font-extrabold">
-              <Clock className="w-4 h-4 text-blue-600" />
-              <span>Cluster 1 Insight</span>
-            </div>
-            <p className="text-slate-700 leading-relaxed">
-              Cluster 1 contains heavy freight corridors requiring preventive bituminous resurfacing before monsoon season to avoid pothole escalation.
-            </p>
+          <div className="flex items-end">
+            <button
+              type="submit"
+              disabled={isPredicting}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-md transition-all"
+            >
+              {isPredicting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Classifying Group...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>Classify Asset Group</span>
+                </>
+              )}
+            </button>
           </div>
-        </div>
+        </form>
+
+        {testResult && (
+          <div className="p-4 bg-slate-900 text-white rounded-xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in duration-300">
+            <div>
+              <span className="text-[10px] font-mono text-purple-400 font-bold uppercase block">Result for {testResult.asset_id}</span>
+              <div className="flex items-center gap-3 mt-1">
+                <span className="text-sm font-extrabold bg-purple-600 text-white px-3 py-1 rounded-lg">
+                  Group {testResult.cluster_id}: {testResult.cluster_name}
+                </span>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <span className="text-[10px] text-slate-400 font-bold block uppercase">Recommended Administrative Action</span>
+              <span className="text-xs font-extrabold text-emerald-400">{testResult.recommended_action}</span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* SECTION 8: AI RECOMMENDATION PANEL */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div className="flex items-center gap-2">
-            <Layers className="w-5 h-5 text-blue-600" />
-            <h2 className="text-base font-extrabold text-slate-900">SECTION 8 — AI Administrative Recommendation Panel</h2>
-          </div>
-          <span className="text-[11px] font-bold text-slate-400">Action Matrix</span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-          <div className="p-4 bg-red-50 border border-red-200 rounded-2xl space-y-2">
-            <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider block">Cluster 3 (Critical Tier)</span>
-            <h4 className="font-extrabold text-red-950 text-sm">Immediate Inspection Required</h4>
-            <p className="text-slate-600 text-[11px] leading-relaxed">
-              Dispatch structural engineering team within 24 hours. Issue emergency repair work orders.
-            </p>
-          </div>
-
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-2">
-            <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">Cluster 2 (High Risk Tier)</span>
-            <h4 className="font-extrabold text-amber-950 text-sm">Increase Inspection Frequency</h4>
-            <p className="text-slate-600 text-[11px] leading-relaxed">
-              Double inspection frequency from monthly to bi-weekly. Monitor pressure telemetry.
-            </p>
-          </div>
-
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl space-y-2">
-            <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">Cluster 1 (Moderate Risk Tier)</span>
-            <h4 className="font-extrabold text-blue-950 text-sm">Schedule Preventive Maintenance</h4>
-            <p className="text-slate-600 text-[11px] leading-relaxed">
-              Schedule resurfacing and transformer coil maintenance within the 30-day capital plan.
-            </p>
-          </div>
-
-          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2">
-            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Cluster 0 (Healthy Tier)</span>
-            <h4 className="font-extrabold text-emerald-950 text-sm">Routine Monitoring</h4>
-            <p className="text-slate-600 text-[11px] leading-relaxed">
-              Maintain standard automated sensor telemetry monitoring with standard quarterly checks.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* MODEL INFORMATION CARD */}
+      {/* MODEL SPECIFICATION CARD */}
       <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-2xl space-y-4">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">
             <Cpu className="w-5 h-5 text-purple-400" />
-            <h3 className="text-base font-extrabold text-white">Model Specification Card — K-Means Clustering Algorithm</h3>
+            <h3 className="text-base font-extrabold text-white">Model Specification Card — K-Means Grouping Engine</h3>
           </div>
           <span className="text-[11px] font-mono text-purple-400 font-bold bg-slate-800 px-2.5 py-1 rounded-md">
-            Scikit-Learn ML Core
+            Scikit-Learn Pattern Core
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
           <div className="space-y-1">
             <span className="text-slate-400 font-bold uppercase text-[10px]">Algorithm & Type</span>
-            <p className="text-white font-extrabold text-sm">K-Means Clustering (Unsupervised)</p>
+            <p className="text-white font-extrabold text-sm">K-Means Clustering (Unsupervised ML)</p>
             <p className="text-slate-400 leading-relaxed mt-1">
-              Automatically groups similar infrastructure assets and complaint regions without predefined labels using Euclidean distance minimization.
+              Automatically groups similar infrastructure assets and complaint regions without manual labels.
             </p>
           </div>
 
           <div className="space-y-1">
             <span className="text-slate-400 font-bold uppercase text-[10px]">Input Features</span>
             <p className="text-white font-extrabold text-xs">
-              Asset Age, Condition Score, Traffic Density, Population Impact, Failure History, Complaint Count, Complaint Severity, Risk Score
+              Asset Age, Condition Rating, Traffic Volume, Citizen Reach, Repair Cost, Complaint Volume, Risk Score
             </p>
           </div>
 
           <div className="space-y-1">
             <span className="text-slate-400 font-bold uppercase text-[10px]">Model Output</span>
-            <p className="text-emerald-400 font-extrabold text-sm">Cluster ID (0–3), Cluster Name & Maintenance Strategy</p>
+            <p className="text-emerald-400 font-extrabold text-sm">Cluster Group ID (0–3), Category Name & Action Plan</p>
           </div>
         </div>
       </div>
