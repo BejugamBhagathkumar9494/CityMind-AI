@@ -16,14 +16,25 @@ import {
   X,
   Send,
   Building2,
-  UserCheck
+  UserCheck,
+  AlertTriangle,
+  RotateCcw,
+  ChevronDown
 } from 'lucide-react';
 import { fetchComplaints, raiseComplaint } from '../services/api';
+
+const STATUS_BADGES = {
+  'Pending': { bg: 'bg-amber-100 text-amber-800 border-amber-300', text: 'Pending', icon: AlertTriangle },
+  'Open': { bg: 'bg-amber-100 text-amber-800 border-amber-300', text: 'Pending', icon: AlertTriangle },
+  'In Progress': { bg: 'bg-blue-100 text-blue-800 border-blue-300', text: 'In Progress', icon: Clock },
+  'Resolved': { bg: 'bg-emerald-100 text-emerald-800 border-emerald-300', text: 'Resolved', icon: CheckCircle2 }
+};
 
 export default function Complaints() {
   const [complaints, setComplaints] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedStatus, setSelectedStatus] = useState('All');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -57,6 +68,18 @@ export default function Complaints() {
     loadComplaints();
   }, [searchTerm]);
 
+  const handleStatusChange = (complaintId, newStatus) => {
+    setComplaints(prev => prev.map(item => {
+      if ((item.id || item.title) === complaintId) {
+        return { ...item, status: newStatus };
+      }
+      return item;
+    }));
+
+    setSuccessBanner(`✔ Complaint ticket ${complaintId} status updated to '${newStatus}'!`);
+    setTimeout(() => setSuccessBanner(null), 4000);
+  };
+
   const handleSubmitComplaint = async (e) => {
     e.preventDefault();
     if (!form.title.trim() || !form.description.trim()) {
@@ -78,7 +101,7 @@ export default function Complaints() {
         location: form.location,
         citizen_name: form.citizen_name,
         description: form.description,
-        status: 'Open',
+        status: 'Pending',
         upvotes: 1,
         created_at: new Date().toISOString()
       };
@@ -113,13 +136,20 @@ export default function Complaints() {
 
   const categories = ['All', ...Array.from(new Set(complaints.map(c => c.category)))];
 
+  // Status counts
+  const countPending = complaints.filter(c => (c.status || 'Pending') === 'Pending' || c.status === 'Open').length;
+  const countInProgress = complaints.filter(c => c.status === 'In Progress').length;
+  const countResolved = complaints.filter(c => c.status === 'Resolved').length;
+
   const filteredComplaints = complaints.filter(c => {
+    const currentStatus = c.status === 'Open' ? 'Pending' : (c.status || 'Pending');
     if (selectedCategory !== 'All' && c.category !== selectedCategory) return false;
+    if (selectedStatus !== 'All' && currentStatus !== selectedStatus) return false;
     return true;
   });
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 select-none">
       {/* Header Banner */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -127,11 +157,11 @@ export default function Complaints() {
             <MessageSquareWarning className="w-5 h-5 text-blue-600" />
             <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Citizen Complaint Intelligence Portal</h1>
             <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-200 font-mono">
-              {complaints.length} Total Complaints Logged
+              {complaints.length} Total Tickets Logged
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Submit infrastructure issues, log citizen feedback, and track real-time resolution SLAs.
+            Track real-time resolution SLAs across Pending, In Progress, and Resolved citizen complaint tickets.
           </p>
         </div>
 
@@ -143,6 +173,62 @@ export default function Complaints() {
             <PlusCircle className="w-4 h-4" />
             <span>Raise New Complaint</span>
           </button>
+        </div>
+      </div>
+
+      {/* STATUS SUMMARY KPI CARDS (4 Cards) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div 
+          onClick={() => setSelectedStatus('All')}
+          className={`cursor-pointer bg-white border rounded-2xl p-4 shadow-card transition-all ${
+            selectedStatus === 'All' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-slate-200 hover:border-slate-300'
+          }`}
+        >
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Complaints</span>
+          <div className="text-2xl font-black text-slate-900 mt-1">{complaints.length}</div>
+          <span className="text-[10px] text-blue-600 font-semibold">All City Tickets</span>
+        </div>
+
+        <div 
+          onClick={() => setSelectedStatus('Pending')}
+          className={`cursor-pointer bg-white border rounded-2xl p-4 shadow-card transition-all ${
+            selectedStatus === 'Pending' ? 'border-amber-500 ring-2 ring-amber-200' : 'border-slate-200 hover:border-slate-300'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pending / Open</span>
+            <AlertTriangle className="w-4 h-4 text-amber-500" />
+          </div>
+          <div className="text-2xl font-black text-amber-600 mt-1">{countPending}</div>
+          <span className="text-[10px] text-amber-600 font-semibold">Awaiting Field Clearance</span>
+        </div>
+
+        <div 
+          onClick={() => setSelectedStatus('In Progress')}
+          className={`cursor-pointer bg-white border rounded-2xl p-4 shadow-card transition-all ${
+            selectedStatus === 'In Progress' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-slate-200 hover:border-slate-300'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">In Progress</span>
+            <Clock className="w-4 h-4 text-blue-500" />
+          </div>
+          <div className="text-2xl font-black text-blue-600 mt-1">{countInProgress}</div>
+          <span className="text-[10px] text-blue-600 font-semibold">Work Order Dispatched</span>
+        </div>
+
+        <div 
+          onClick={() => setSelectedStatus('Resolved')}
+          className={`cursor-pointer bg-white border rounded-2xl p-4 shadow-card transition-all ${
+            selectedStatus === 'Resolved' ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-slate-200 hover:border-slate-300'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Resolved</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          </div>
+          <div className="text-2xl font-black text-emerald-600 mt-1">{countResolved}</div>
+          <span className="text-[10px] text-emerald-600 font-semibold">Successfully Fixed & Closed</span>
         </div>
       </div>
 
@@ -288,12 +374,12 @@ export default function Complaints() {
         </div>
       )}
 
-      {/* Semantic Search Box */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-card space-y-3">
+      {/* Semantic Search Box & Filter Controls */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-card space-y-4">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Semantic AI Complaint Search</span>
           <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-            Live Feed: {filteredComplaints.length} Tickets
+            Filtered Tickets: {filteredComplaints.length}
           </span>
         </div>
 
@@ -307,27 +393,50 @@ export default function Complaints() {
             className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
           />
         </div>
-      </div>
 
-      {/* Dynamic Categories Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        <span className="text-xs font-bold text-slate-400 mr-2 shrink-0">Filter Category:</span>
-        {categories.map((cat) => {
-          const count = cat === 'All' ? complaints.length : complaints.filter(c => c.category === cat).length;
-          return (
+        {/* STATUS FILTER PILLS */}
+        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">
+          <span className="text-xs font-bold text-slate-400 mr-1 shrink-0">Filter Status:</span>
+          {[
+            { id: 'All', label: `All Statuses (${complaints.length})`, bg: 'bg-slate-800 text-white' },
+            { id: 'Pending', label: `Pending (${countPending})`, bg: 'bg-amber-100 text-amber-800 border-amber-200' },
+            { id: 'In Progress', label: `In Progress (${countInProgress})`, bg: 'bg-blue-100 text-blue-800 border-blue-200' },
+            { id: 'Resolved', label: `Resolved (${countResolved})`, bg: 'bg-emerald-100 text-emerald-800 border-emerald-200' }
+          ].map(st => (
             <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all ${
-                selectedCategory === cat
+              key={st.id}
+              onClick={() => setSelectedStatus(st.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-extrabold shrink-0 transition-all ${
+                selectedStatus === st.id
                   ? 'bg-blue-600 text-white shadow-xs'
                   : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'
               }`}
             >
-              {cat} ({count})
+              {st.label}
             </button>
-          );
-        })}
+          ))}
+        </div>
+
+        {/* Dynamic Sector Categories Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pt-1">
+          <span className="text-xs font-bold text-slate-400 mr-2 shrink-0">Filter Sector:</span>
+          {categories.map((cat) => {
+            const count = cat === 'All' ? complaints.length : complaints.filter(c => c.category === cat).length;
+            return (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 transition-all ${
+                  selectedCategory === cat
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {cat} ({count})
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Error Alert */}
@@ -349,55 +458,73 @@ export default function Complaints() {
         <div className="space-y-3">
           {filteredComplaints.length === 0 ? (
             <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-xs text-slate-500">
-              No citizen complaints found matching your query.
+              No citizen complaints found matching your filter criteria.
             </div>
           ) : (
-            filteredComplaints.map((item, idx) => (
-              <div 
-                key={item.id || idx} 
-                className="bg-white border border-slate-200 rounded-2xl p-5 shadow-card hover:border-blue-300 transition-all space-y-2 animate-in fade-in duration-300"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
-                      {item.id}
-                    </span>
-                    <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
-                      (item.priority || item.severity) === 'Critical' ? 'bg-red-100 text-red-700 border border-red-200' : 
-                      (item.priority || item.severity) === 'High' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-blue-100 text-blue-700 border border-blue-200'
-                    }`}>
-                      {item.priority || item.severity || 'High'} Priority
-                    </span>
-                    <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-blue-100">
-                      {item.category}
-                    </span>
+            filteredComplaints.map((item, idx) => {
+              const currentStatus = item.status === 'Open' ? 'Pending' : (item.status || 'Pending');
+              return (
+                <div 
+                  key={item.id || idx} 
+                  className="bg-white border border-slate-200 rounded-2xl p-5 shadow-card hover:border-blue-300 transition-all space-y-3 animate-in fade-in duration-300"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
+                        {item.id || `CMP-${idx+100}`}
+                      </span>
+                      <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
+                        (item.priority || item.severity) === 'Critical' ? 'bg-red-100 text-red-700 border border-red-200' : 
+                        (item.priority || item.severity) === 'High' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-blue-100 text-blue-700 border border-blue-200'
+                      }`}>
+                        {item.priority || item.severity || 'High'} Priority
+                      </span>
+                      <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-blue-100">
+                        {item.category}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3 text-[11px] text-slate-500">
+                      <div className="flex items-center gap-1 font-semibold">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{item.location || 'Central City'}</span>
+                      </div>
+                      <div className="flex items-center gap-1 font-mono text-slate-400">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>{item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recent'}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-3 text-[11px] text-slate-500">
-                    <div className="flex items-center gap-1 font-semibold">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{item.location || 'Central City'}</span>
-                    </div>
-                    <div className="flex items-center gap-1 font-mono text-slate-400">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>{item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recent'}</span>
+                  <div className="pt-1">
+                    <h3 className="font-extrabold text-slate-900 text-sm">{item.title}</h3>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">{item.description}</p>
+                  </div>
+
+                  {/* Footer with Interactive Status Changer Dropdown */}
+                  <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-slate-100 text-[11px]">
+                    <span className="text-slate-400 font-medium">Logged by: <strong className="text-slate-700">{item.citizen_name || 'Resident'}</strong></span>
+                    
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-400 font-bold text-[10px] uppercase">Update Status:</span>
+                      <select
+                        value={currentStatus}
+                        onChange={(e) => handleStatusChange(item.id || item.title, e.target.value)}
+                        className={`text-[11px] font-extrabold px-3 py-1 rounded-xl border focus:outline-none focus:ring-2 cursor-pointer transition-all ${
+                          currentStatus === 'Resolved' ? 'bg-emerald-50 text-emerald-800 border-emerald-300 focus:ring-emerald-500' :
+                          currentStatus === 'In Progress' ? 'bg-blue-50 text-blue-800 border-blue-300 focus:ring-blue-500' :
+                          'bg-amber-50 text-amber-800 border-amber-300 focus:ring-amber-500'
+                        }`}
+                      >
+                        <option value="Pending">🟡 Pending / Open</option>
+                        <option value="In Progress">🔵 In Progress</option>
+                        <option value="Resolved">🟢 Resolved</option>
+                      </select>
                     </div>
                   </div>
                 </div>
-
-                <div className="pt-1">
-                  <h3 className="font-extrabold text-slate-900 text-sm">{item.title}</h3>
-                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">{item.description}</p>
-                </div>
-
-                <div className="pt-2 flex items-center justify-between text-[11px]">
-                  <span className="text-slate-400 font-medium">Logged by: <strong className="text-slate-700">{item.citizen_name || 'Resident'}</strong></span>
-                  <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-200">
-                    Status: {item.status || 'Open'}
-                  </span>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}
