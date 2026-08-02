@@ -107,6 +107,7 @@ export default function Overview({ onNavigate, onOpenInspection, selectedCity = 
   const activeCityMetrics = CITY_METRICS[selectedCity] || CITY_METRICS.bengaluru;
 
   useEffect(() => {
+    setComplaintOffset(0); // Reset complaint offset when switching cities
     async function loadData() {
       try {
         const [anRes, infraRes] = await Promise.all([
@@ -151,7 +152,7 @@ export default function Overview({ onNavigate, onOpenInspection, selectedCity = 
   };
 
   const kpis = {
-    total_complaints: (analytics?.kpis?.total_complaints || activeCityMetrics.total_complaints) + complaintOffset,
+    total_complaints: activeCityMetrics.total_complaints + complaintOffset,
     infra_at_risk: activeCityMetrics.infra_at_risk,
     budget_available_inr_cr: activeCityMetrics.budget_available_inr_cr,
     citizens_impacted: activeCityMetrics.citizens_impacted,
