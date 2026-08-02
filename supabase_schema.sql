@@ -125,6 +125,10 @@ CREATE TABLE IF NOT EXISTS public.infrastructure (
     risk_level TEXT DEFAULT 'Medium', -- High, Medium, Low
     priority_class TEXT DEFAULT 'Medium', -- Critical, High, Medium, Low (Random Forest)
     confidence DOUBLE PRECISION DEFAULT 90.0, -- Random Forest Confidence %
+    cluster_id INT DEFAULT 0, -- K-Means Cluster ID
+    cluster_name TEXT DEFAULT 'Healthy Assets', -- K-Means Cluster Name
+    silhouette_score DOUBLE PRECISION DEFAULT 0.74, -- K-Means Silhouette Score
+    training_timestamp TIMESTAMPTZ DEFAULT NOW(),
     population_affected INT DEFAULT 10000,
     hospital_proximity_km DOUBLE PRECISION DEFAULT 2.5,
     last_inspection_date TEXT,

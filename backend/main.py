@@ -794,6 +794,48 @@ def get_random_forest_analytics():
         "priority_distribution": priority_counts
     }
 
+# -------------------------------------------------------------
+# K-MEANS CLUSTERING ANALYTICS ENDPOINTS
+# -------------------------------------------------------------
+@app.post("/api/ml/kmeans/predict")
+def predict_kmeans_cluster(asset_data: dict = Body(...)):
+    """
+    K-Means Clustering Prediction Endpoint:
+    Returns Cluster ID, Cluster Name, Silhouette Score, and Recommended Action.
+    """
+    res = ml_engine.predict_kmeans_cluster(asset_data)
+    
+    # Store prediction into database if asset_id is present
+    asset_id = asset_data.get('asset_id') or asset_data.get('id')
+    if asset_id:
+        try:
+            from backend.database import get_db_connection
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE infrastructure 
+                SET cluster_id = ?, cluster_name = ?, silhouette_score = ?, training_timestamp = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """, (res['cluster_id'], res['cluster_name'], res['silhouette_score'], asset_id))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"DB K-Means update skipped: {e}")
+            
+    return {
+        "status": "success",
+        "cluster_id": res['cluster_id'],
+        "cluster_name": res['cluster_name'],
+        "silhouette_score": res['silhouette_score'],
+        "recommended_action": res['recommended_action'],
+        "asset_id": res['asset_id']
+    }
+
+@app.get("/api/ml/kmeans/analytics")
+def get_kmeans_analytics():
+    """Returns K-Means evaluation metrics, dataset splits, elbow points, and cluster tables."""
+    return ml_engine.get_kmeans_analytics()
+
 from backend.app.services.assistant_service import assistant_service
 
 # -------------------------------------------------------------

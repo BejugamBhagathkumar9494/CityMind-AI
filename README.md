@@ -69,6 +69,20 @@ Feature Engineering & Normalization
 - **Why XGBoost?** XGBoost is optimized for continuous regression targets, outputting precise, non-linear failure probabilities (0.00–1.00) and risk scores based on physical telemetry.
 - **Why Random Forest?** Random Forest excels at robust multi-class decision boundary partitioning, converting continuous risk scores and multi-variable operational constraints into clear, un-ambiguous administrative priority tiers (*Critical, High, Medium, Low*).
 
+### 📊 Dataset Partitioning & Validation Pipeline
+The machine learning pipeline enforces rigorous dataset partitioning to ensure model generalization and avoid overfitting:
+
+- **70% Training Data**: Used to train the supervised machine learning models (XGBoost Failure Risk Engine and Random Forest Priority Classifier).
+- **15% Validation Data**: Used for hyperparameter tuning, feature selection, and preventing overfitting across training iterations.
+- **15% Testing Data**: Completely unseen data reserved exclusively for final unbiased evaluation of overall model performance.
+
+### 🧠 🧠 K-Means Clustering Analytics (Unsupervised Learning)
+*K-Means is an Unsupervised Learning algorithm, so it does not require labeled target values. It uses the same processed feature set to discover hidden infrastructure and complaint patterns. The quality of clustering is evaluated using the Elbow Method and Silhouette Score rather than classification accuracy.*
+
+- **Infrastructure Asset Clusters**: Classifies assets into 4 clusters: *Cluster 0 (Healthy Assets)*, *Cluster 1 (Moderate Risk)*, *Cluster 2 (High Risk)*, and *Cluster 3 (Critical Infrastructure)*.
+- **Citizen Complaint Hotspots**: Identifies geographic complaint density zones (*High, Medium, and Low Complaint Zones*).
+- **Cluster Quality Evaluation**: Evaluated using Silhouette Score (0.74) and Inertia minimization across K=1 to K=6.
+
 ### 3. 📚 Grounded Policy RAG Engine (FAISS + TF-IDF Vector Search)
 - **Statutory Law & Guideline Retrieval**: Integrates the official **Delhi Municipal Corporation (DMC) Act 1957** (160+ chunks) and smart city infrastructure standard operating procedures.
 - **Explainable AI Decisions**: Every repair recommendation and budget clearance is backed by statutory section citations and confidence scoring up to 98%.

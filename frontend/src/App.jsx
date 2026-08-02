@@ -22,6 +22,7 @@ import WaterModule from './components/WaterModule';
 import EnergyModule from './components/EnergyModule';
 import TransportModule from './components/TransportModule';
 import RFPriorityModule from './components/RFPriorityModule';
+import KMeansModule from './components/KMeansModule';
 import { signOutUser } from './services/supabaseClient';
 
 export default function App() {
@@ -114,6 +115,8 @@ export default function App() {
         );
       case 'priority':
         return <RFPriorityModule />;
+      case 'kmeans':
+        return <KMeansModule />;
       case 'complaints':
         return <Complaints />;
       case 'documents':

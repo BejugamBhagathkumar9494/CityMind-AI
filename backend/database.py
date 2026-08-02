@@ -41,6 +41,10 @@ def init_db():
         failure_probability REAL, -- 0-1
         priority_class TEXT, -- Critical, High, Medium, Low (from Random Forest)
         confidence REAL, -- Random Forest confidence %
+        cluster_id INTEGER, -- K-Means Cluster ID
+        cluster_name TEXT, -- K-Means Cluster Name
+        silhouette_score REAL, -- K-Means Silhouette Score
+        training_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         complaints_count INTEGER,
         population_affected INTEGER,
         repair_cost_inr REAL, -- In Lakhs / Crores
@@ -64,6 +68,22 @@ def init_db():
         pass
     try:
         cursor.execute("ALTER TABLE infrastructure ADD COLUMN prediction_time TIMESTAMP")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE infrastructure ADD COLUMN cluster_id INTEGER")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE infrastructure ADD COLUMN cluster_name TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE infrastructure ADD COLUMN silhouette_score REAL")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE infrastructure ADD COLUMN training_timestamp TIMESTAMP")
     except Exception:
         pass
 

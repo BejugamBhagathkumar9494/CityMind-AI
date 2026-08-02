@@ -17,17 +17,19 @@ import {
   Zap,
   Bus,
   Building2,
-  Cpu
+  Cpu,
+  Brain
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview & Upload', icon: LayoutDashboard, badge: 'Live' },
   { id: 'infrastructure', label: 'Infrastructure Risk', icon: MapPin, badge: 'XGBoost' },
   { id: 'priority', label: 'Priority Classifier', icon: Cpu, badge: 'Random Forest' },
+  { id: 'kmeans', label: 'K-Means Analytics', icon: Brain, badge: 'Unsupervised' },
+  { id: 'agents', label: 'AI Agents', icon: Bot, badge: '4 Active', highlight: true },
   { id: 'complaints', label: 'Citizen Complaints', icon: MessageSquareWarning, badge: 'NLP' },
   { id: 'documents', label: 'Policy RAG Search', icon: FolderGit2, badge: 'FAISS' },
   { id: 'budget', label: 'Budget Optimization', icon: PieChart, badge: 'Knapsack' },
-  { id: 'agents', label: 'AI Agents', icon: Bot, badge: '4 Active', highlight: true },
 ];
 
 export default function Sidebar({ activeTab, setActiveTab, onStartDemo }) {
