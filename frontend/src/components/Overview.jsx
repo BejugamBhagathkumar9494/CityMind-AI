@@ -268,7 +268,7 @@ export default function Overview({ onNavigate, onOpenInspection, selectedCity = 
               <MessageSquareWarning className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-slate-900 mt-2">{kpis.total_complaints.toLocaleString()}</p>
+          <p className="text-2xl font-extrabold text-slate-900 mt-2">{(kpis.total_complaints || 0).toLocaleString()}</p>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-card hover:border-slate-300 transition-all">
@@ -278,7 +278,7 @@ export default function Overview({ onNavigate, onOpenInspection, selectedCity = 
               <ShieldAlert className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-slate-900 mt-2">{kpis.infra_at_risk}</p>
+          <p className="text-2xl font-extrabold text-slate-900 mt-2">{kpis.infra_at_risk || 0}</p>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-card hover:border-slate-300 transition-all">
@@ -288,7 +288,7 @@ export default function Overview({ onNavigate, onOpenInspection, selectedCity = 
               <Coins className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-slate-900 mt-2">₹{kpis.budget_available_inr_cr.toFixed(2)} Cr</p>
+          <p className="text-2xl font-extrabold text-slate-900 mt-2">₹{Number(kpis.budget_available_inr_cr || 0).toFixed(2)} Cr</p>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-card hover:border-slate-300 transition-all">
@@ -298,7 +298,7 @@ export default function Overview({ onNavigate, onOpenInspection, selectedCity = 
               <Users className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-slate-900 mt-2">{kpis.citizens_impacted.toLocaleString()}</p>
+          <p className="text-2xl font-extrabold text-slate-900 mt-2">{(kpis.citizens_impacted || 0).toLocaleString()}</p>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-card hover:border-slate-300 transition-all">
