@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Sparkles, 
   ArrowRight, 
@@ -48,6 +48,15 @@ export default function LandingPage({ onExplore, onOpenAuth }) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [activeAgentIndex, setActiveAgentIndex] = useState(-1);
   const [showReasoningModal, setShowReasoningModal] = useState(false);
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.defaultMuted = true;
+      videoRef.current.muted = true;
+      videoRef.current.play().catch(() => {});
+    }
+  }, []);
 
   // Budget Donut Chart Data
   const budgetDonutData = [
@@ -154,18 +163,20 @@ export default function LandingPage({ onExplore, onOpenAuth }) {
       {/* ================================================== */}
       <section id="dashboard-hero" className="relative min-h-screen w-full flex flex-col justify-center items-center overflow-hidden bg-slate-950 pt-28 pb-16 px-4 sm:px-6">
         
-        {/* Full-Screen Crisp Background Video */}
-        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        {/* Full-Screen Crisp Direct Background Video (No Static Image Poster) */}
+        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0 bg-slate-950">
           <video
+            ref={videoRef}
             autoPlay
             muted
             loop
             playsInline
+            preload="auto"
+            disablePictureInPicture
             className="w-full h-full object-cover scale-105 transition-transform duration-[30s] ease-out select-none transform-gpu filter brightness-110 contrast-105"
-            poster="/smart_city_auth_bg.png"
+            onCanPlay={(e) => e.target.play()}
           >
             <source src="/hero_bg_video.mp4" type="video/mp4" />
-            <source src="/14770874_3840_2160_60fps.mp4" type="video/mp4" />
           </video>
         </div>
 
