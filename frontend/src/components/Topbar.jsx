@@ -121,15 +121,6 @@ export default function Topbar({
 
       {/* Right Actions */}
       <div className="flex items-center space-x-3">
-        
-        {/* Live Weather Telemetry Badge */}
-        {weather && (
-          <div className="hidden lg:flex items-center space-x-1.5 bg-blue-50/80 border border-blue-200/80 px-3 py-1.5 rounded-lg text-xs font-bold text-blue-900 shadow-xs">
-            <CloudRain className="w-3.5 h-3.5 text-blue-600 animate-pulse" />
-            <span>{weather.city}: {weather.temperature_celsius}°C</span>
-            <span className="text-[10px] text-blue-600 font-semibold">({weather.weather_condition})</span>
-          </div>
-        )}
 
         {/* Landing Page Link */}
         <button

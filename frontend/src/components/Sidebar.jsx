@@ -22,14 +22,14 @@ import {
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { id: 'overview', label: 'Overview & Upload', icon: LayoutDashboard, badge: 'Live' },
+  { id: 'overview', label: 'Overview', icon: LayoutDashboard, badge: 'Live' },
   { id: 'infrastructure', label: 'Infrastructure Risk', icon: MapPin, badge: 'XGBoost' },
-  { id: 'priority', label: 'Priority Classifier', icon: Cpu, badge: 'Random Forest' },
-  { id: 'kmeans', label: 'K-Means Analytics', icon: Brain, badge: 'Unsupervised' },
-  { id: 'agents', label: 'AI Agents', icon: Bot, badge: '4 Active', highlight: true },
+  { id: 'priority', label: 'Priority Engine', icon: Cpu, badge: 'RF Model' },
+  { id: 'kmeans', label: 'K-Means Clusters', icon: Brain, badge: 'Unsupervised' },
+  { id: 'agents', label: 'AI Agents', icon: Bot, badge: '6 Active', highlight: true },
   { id: 'complaints', label: 'Citizen Complaints', icon: MessageSquareWarning, badge: 'NLP' },
   { id: 'documents', label: 'Policy RAG Search', icon: FolderGit2, badge: 'FAISS' },
-  { id: 'budget', label: 'Budget Optimization', icon: PieChart, badge: 'Knapsack' },
+  { id: 'budget', label: 'Budget Optimizer', icon: PieChart, badge: 'Knapsack' },
 ];
 
 export default function Sidebar({ activeTab, setActiveTab, onStartDemo }) {
@@ -80,19 +80,19 @@ export default function Sidebar({ activeTab, setActiveTab, onStartDemo }) {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
                 isActive
-                  ? 'bg-blue-50 text-blue-700 font-semibold shadow-xs'
+                  ? 'bg-blue-50 text-blue-700 font-bold shadow-xs'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <div className="flex items-center space-x-2.5">
-                <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
-                <span>{item.label}</span>
+              <div className="flex items-center space-x-2.5 min-w-0 pr-1">
+                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
+                <span className="truncate">{item.label}</span>
               </div>
               {item.badge && (
                 <span
-                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+                  className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${
                     item.highlight
                       ? 'bg-blue-600 text-white'
                       : isActive
