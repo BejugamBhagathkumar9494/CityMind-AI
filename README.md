@@ -413,13 +413,14 @@ Backend
 
 # 🎯 Future Scope
 
-- Live IoT integration
+
 - Satellite infrastructure monitoring
 - Digital Twin Simulation
 - Predictive maintenance scheduling
 - Multi-city benchmarking
 - Disaster response optimization
-- Smart utility management
+- Smart utility management 
+-Live IOT Integration
 
 ---
 
