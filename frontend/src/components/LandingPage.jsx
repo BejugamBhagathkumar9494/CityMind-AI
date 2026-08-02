@@ -103,96 +103,124 @@ export default function LandingPage({ onExplore, onOpenAuth }) {
     <div className="bg-[#FAFBFF] text-[#0F172A] min-h-screen font-sans antialiased selection:bg-blue-100 selection:text-blue-700">
       
       {/* ================================================== */}
-      {/* 1. HEADER                                          */}
+      {/* 1. CINEMATIC FLOATING GLASSMORPHISM NAVBAR         */}
       {/* ================================================== */}
-      <header className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between border-b border-slate-200/60 sticky top-0 bg-[#FAFBFF]/90 backdrop-blur-md z-50">
-        {/* Brand Logo */}
-        <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-sm">
-            C
+      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-950/70 backdrop-blur-xl border-b border-white/10 shadow-2xl transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+          {/* Brand Logo */}
+          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-blue-500 to-indigo-500 flex items-center justify-center text-white font-black text-xl shadow-lg ring-1 ring-white/20">
+              C
+            </div>
+            <div className="flex items-baseline space-x-1.5">
+              <span className="font-extrabold text-white text-xl tracking-tight">CityMind</span>
+              <span className="font-extrabold text-blue-400 text-xl tracking-tight">AI</span>
+              <span className="bg-blue-500/20 text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-400/30 ml-1.5">
+                ENTERPRISE
+              </span>
+            </div>
           </div>
-          <div className="flex items-baseline space-x-1.5">
-            <span className="font-extrabold text-slate-900 text-lg tracking-tight">CityMind</span>
-            <span className="font-extrabold text-blue-600 text-lg tracking-tight">AI</span>
-            <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded border border-blue-200/80 ml-1">
-              ENTERPRISE
-            </span>
+
+          {/* Navigation Links */}
+          <nav className="hidden md:flex items-center space-x-8 text-xs font-semibold text-slate-300">
+            <button onClick={() => scrollToSection('dashboard-hero')} className="hover:text-blue-400 transition-colors">Product</button>
+            <button onClick={() => scrollToSection('agents-section')} className="hover:text-blue-400 transition-colors">AI Agents</button>
+            <button onClick={() => scrollToSection('fragmented-section')} className="hover:text-blue-400 transition-colors">Solutions</button>
+            <button onClick={() => scrollToSection('decision-section')} className="hover:text-blue-400 transition-colors">Decision Intelligence</button>
+            <button onClick={() => scrollToSection('why-section')} className="hover:text-blue-400 transition-colors">Why CityMind</button>
+          </nav>
+
+          {/* Action Buttons */}
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={onOpenAuth}
+              className="text-xs font-bold text-slate-300 hover:text-white px-3.5 py-2 transition-colors"
+            >
+              Login
+            </button>
+            <button
+              onClick={onExplore}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-blue-600/30 hover:shadow-blue-500/50 transition-all flex items-center gap-1.5 ring-1 ring-white/20"
+            >
+              <span>Request Demo</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
-        </div>
-
-        {/* Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-8 text-xs font-semibold text-slate-600">
-          <button onClick={() => scrollToSection('dashboard-hero')} className="hover:text-blue-600 transition-colors">Product</button>
-          <button onClick={() => scrollToSection('agents-section')} className="hover:text-blue-600 transition-colors">AI Agents</button>
-          <button onClick={() => scrollToSection('fragmented-section')} className="hover:text-blue-600 transition-colors">Solutions</button>
-          <button onClick={() => scrollToSection('decision-section')} className="hover:text-blue-600 transition-colors">Decision Intelligence</button>
-          <button onClick={() => scrollToSection('why-section')} className="hover:text-blue-600 transition-colors">Why CityMind</button>
-        </nav>
-
-        {/* Action Buttons */}
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={onOpenAuth}
-            className="text-xs font-bold text-slate-700 hover:text-blue-600 px-3 py-2 transition-colors"
-          >
-            Login
-          </button>
-          <button
-            onClick={onExplore}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs hover:shadow-blue-500/20 transition-all flex items-center gap-1.5"
-          >
-            <span>Request Demo</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
         </div>
       </header>
 
       {/* ================================================== */}
-      {/* HERO SECTION                                       */}
+      {/* 2. CINEMATIC HERO SECTION WITH VIDEO BACKGROUND     */}
       {/* ================================================== */}
-      <section id="dashboard-hero" className="pt-16 pb-12 px-4 sm:px-6 text-center max-w-7xl mx-auto">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 bg-blue-50/80 border border-blue-200/80 px-4 py-1.5 rounded-full text-xs font-bold text-blue-700 mb-6 shadow-xs">
-          <Sparkles className="w-3.5 h-3.5 text-blue-600 animate-pulse" />
-          <span>The Intelligence Layer for Future Smart Cities</span>
+      <section id="dashboard-hero" className="relative min-h-[95vh] w-full flex flex-col justify-center items-center overflow-hidden bg-slate-950 pt-28 pb-16 px-4 sm:px-6">
+        
+        {/* Full-Screen Background Video */}
+        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full h-full object-cover scale-105 transition-transform duration-[30s] ease-out select-none"
+            poster="/smart_city_auth_bg.png"
+          >
+            <source src="/hero_bg_video.mp4" type="video/mp4" />
+            <source src="/14770874_3840_2160_60fps.mp4" type="video/mp4" />
+          </video>
         </div>
 
-        {/* Headline */}
-        <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-slate-900 tracking-tight leading-[1.08] max-w-4xl mx-auto">
-          Smarter Decisions.<br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600">
-            Stronger Cities.
-          </span>
-        </h1>
+        {/* Multi-Layer Cinematic Dark & Brand Gradient Overlay */}
+        <div className="absolute inset-0 bg-slate-950/65 backdrop-blur-[1px] z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-slate-950/50 to-slate-950 z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-950/40 via-transparent to-indigo-950/40 z-10 pointer-events-none" />
+        {/* Soft Vignette Overlay */}
+        <div className="absolute inset-0 pointer-events-none z-10" style={{ background: 'radial-gradient(circle at center, transparent 35%, rgba(2, 6, 23, 0.75) 100%)' }} />
 
-        {/* Subheadline */}
-        <p className="text-base sm:text-lg text-slate-600 font-medium max-w-2xl mx-auto mt-6 leading-relaxed">
-          CityMind AI connects infrastructure, citizen data, budgets and policies — then uses machine learning and collaborating AI agents to determine what your city should fix next.
-        </p>
+        {/* Hero Content (Floating over Video) */}
+        <div className="relative z-20 text-center max-w-5xl mx-auto space-y-6 pt-4 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-400/30 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold text-blue-300 shadow-xl">
+            <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
+            <span>The Intelligence Layer for Future Smart Cities</span>
+          </div>
 
-        {/* CTA Buttons */}
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <button
-            onClick={onExplore}
-            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm px-7 py-3.5 rounded-2xl shadow-md hover:shadow-blue-600/25 transition-all flex items-center justify-center gap-2 group"
-          >
-            <span>Explore City Intelligence</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-          </button>
-          <button
-            onClick={() => scrollToSection('agents-section')}
-            className="w-full sm:w-auto bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-sm px-7 py-3.5 rounded-2xl shadow-xs transition-colors flex items-center justify-center gap-2"
-          >
-            <Play className="w-4 h-4 text-blue-600 fill-blue-600" />
-            <span>See How It Works</span>
-          </button>
+          {/* Headline */}
+          <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white tracking-tight leading-[1.05] drop-shadow-2xl">
+            Smarter Decisions.<br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-300 to-indigo-300">
+              Stronger Cities.
+            </span>
+          </h1>
+
+          {/* Subheadline */}
+          <p className="text-base sm:text-xl text-slate-200 font-medium max-w-3xl mx-auto leading-relaxed drop-shadow-lg">
+            CityMind AI connects infrastructure, citizen data, budgets and policies — then uses machine learning and collaborating AI agents to determine what your city should fix next.
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button
+              onClick={onExplore}
+              className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-sm sm:text-base px-8 py-4 rounded-2xl shadow-2xl shadow-blue-600/50 hover:shadow-blue-500/70 transition-all flex items-center justify-center gap-2.5 group ring-1 ring-white/30"
+            >
+              <span>Explore City Intelligence</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+            <button
+              onClick={() => scrollToSection('agents-section')}
+              className="w-full sm:w-auto bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-extrabold text-sm sm:text-base px-8 py-4 rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2.5"
+            >
+              <Play className="w-4 h-4 text-blue-400 fill-blue-400" />
+              <span>See How It Works</span>
+            </button>
+          </div>
         </div>
 
         {/* ================================================== */}
         {/* FULL-WIDTH CITY INTELLIGENCE DASHBOARD             */}
         {/* ================================================== */}
-        <div className="mt-14 w-full max-w-[94%] mx-auto">
-          <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xl text-left font-sans relative overflow-hidden">
+        <div className="relative z-20 mt-14 w-full max-w-[94%] mx-auto">
+          <div className="bg-white/95 backdrop-blur-xl border border-white/40 rounded-3xl p-6 sm:p-8 shadow-2xl text-left font-sans relative overflow-hidden ring-1 ring-slate-950/10">
             
             {/* Top Bar of Dashboard */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5 mb-6">

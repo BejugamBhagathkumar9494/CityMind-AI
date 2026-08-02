@@ -20,3 +20,5 @@ build/
 
 # Large dataset files
 DataSets/public_transport.parquet
+*.zip
+frontend/public/14770874_3840_2160_60fps.mp4
