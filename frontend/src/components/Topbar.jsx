@@ -1,4 +1,3 @@
-import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, 
   Bell, 
@@ -10,7 +9,8 @@ import {
   ShieldAlert,
   Sparkles,
   CloudRain,
-  Sun
+  Sun,
+  Menu
 } from 'lucide-react';
 import { fetchLiveWeather } from '../services/api';
 
@@ -21,7 +21,8 @@ export default function Topbar({
   onShowLanding,
   onStartDemo,
   user,
-  onLogout
+  onLogout,
+  onToggleMobileSidebar
 }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -59,9 +60,18 @@ export default function Topbar({
     : 'AO';
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-20 shadow-xs">
-      {/* Left: City Selector & Search */}
-      <div className="flex items-center space-x-4 flex-1 max-w-2xl">
+    <header className="h-16 bg-white border-b border-slate-200 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-20 shadow-xs">
+      {/* Left: Mobile Hamburger & City Selector & Search */}
+      <div className="flex items-center space-x-2 sm:space-x-4 flex-1 max-w-2xl">
+        {/* Mobile Hamburger Toggle Button */}
+        <button
+          onClick={onToggleMobileSidebar}
+          className="lg:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+          title="Open Navigation Menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
         {/* City Selector */}
         <div className="relative" ref={cityMenuRef}>
           <button 
@@ -98,7 +108,7 @@ export default function Topbar({
         </div>
 
         {/* Global Search Bar */}
-        <div className="relative flex-1">
+        <div className="relative flex-1 hidden md:block">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"

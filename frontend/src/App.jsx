@@ -64,6 +64,9 @@ export default function App() {
   // Asset Inspection Drawer state
   const [inspectedAsset, setInspectedAsset] = useState(null);
 
+  // Mobile Navigation Drawer state
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
   // Dedicated SaaS Auth Page (Full-Screen 100vw x 100vh)
   if (viewMode === 'auth') {
     return (
@@ -135,20 +138,47 @@ export default function App() {
   };
 
   return (
-    <div className="flex bg-[#F8FAFC] min-h-screen text-slate-900 selection:bg-blue-100 selection:text-blue-700 font-sans">
-      {/* Sidebar */}
-      <Sidebar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onStartDemo={() => {
-          setIsDemoActive(true);
-          setDemoStep(0);
-          setActiveTab('overview');
-        }}
-      />
+    <div className="flex bg-[#F8FAFC] min-h-screen text-slate-900 selection:bg-blue-100 selection:text-blue-700 font-sans overflow-x-hidden">
+      {/* Desktop Sidebar (visible on lg screens) */}
+      <div className="hidden lg:block shrink-0">
+        <Sidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onStartDemo={() => {
+            setIsDemoActive(true);
+            setDemoStep(0);
+            setActiveTab('overview');
+          }}
+        />
+      </div>
+
+      {/* Mobile Drawer Overlay (visible when isMobileSidebarOpen is true on small screens) */}
+      {isMobileSidebarOpen && (
+        <div className="fixed inset-0 z-[9999] lg:hidden flex">
+          <div 
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200" 
+            onClick={() => setIsMobileSidebarOpen(false)} 
+          />
+          <div className="relative w-64 bg-white h-full shadow-2xl z-50 flex flex-col animate-in slide-in-from-left duration-200">
+            <Sidebar
+              activeTab={activeTab}
+              setActiveTab={(tab) => {
+                setActiveTab(tab);
+                setIsMobileSidebarOpen(false);
+              }}
+              onStartDemo={() => {
+                setIsDemoActive(true);
+                setDemoStep(0);
+                setActiveTab('overview');
+                setIsMobileSidebarOpen(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-x-hidden">
         {/* Topbar */}
         <Topbar
           selectedCity={selectedCity}
@@ -158,6 +188,7 @@ export default function App() {
           onStartDemo={() => setIsDemoActive(true)}
           user={user}
           onLogout={handleLogout}
+          onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
         />
 
         {/* Hackathon Demo Walkthrough Banner */}
@@ -171,7 +202,7 @@ export default function App() {
         )}
 
         {/* View Body */}
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
           {renderTabContent()}
         </main>
       </div>

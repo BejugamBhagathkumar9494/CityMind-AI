@@ -141,7 +141,7 @@ export default function KMeansModule() {
       </div>
 
       {/* OVERVIEW SUMMARY CARDS */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-card">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Infrastructure Assets</span>
           <div className="text-2xl font-black text-slate-900 mt-1">{kpis.total_assets}</div>
