@@ -150,18 +150,18 @@ export default function LandingPage({ onExplore, onOpenAuth }) {
       </header>
 
       {/* ================================================== */}
-      {/* 2. CINEMATIC HERO SECTION WITH VIDEO BACKGROUND     */}
+      {/* 2. HIGH-VISIBILITY HERO SECTION WITH VIDEO BG       */}
       {/* ================================================== */}
-      <section id="dashboard-hero" className="relative min-h-[95vh] w-full flex flex-col justify-center items-center overflow-hidden bg-slate-950 pt-28 pb-16 px-4 sm:px-6">
+      <section id="dashboard-hero" className="relative min-h-screen w-full flex flex-col justify-center items-center overflow-hidden bg-slate-950 pt-28 pb-16 px-4 sm:px-6">
         
-        {/* Full-Screen Background Video */}
+        {/* Full-Screen Crisp Background Video */}
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
           <video
             autoPlay
             muted
             loop
             playsInline
-            className="w-full h-full object-cover scale-105 transition-transform duration-[30s] ease-out select-none"
+            className="w-full h-full object-cover scale-105 transition-transform duration-[30s] ease-out select-none transform-gpu filter brightness-110 contrast-105"
             poster="/smart_city_auth_bg.png"
           >
             <source src="/hero_bg_video.mp4" type="video/mp4" />
@@ -169,31 +169,32 @@ export default function LandingPage({ onExplore, onOpenAuth }) {
           </video>
         </div>
 
-        {/* Multi-Layer Cinematic Dark & Brand Gradient Overlay */}
-        <div className="absolute inset-0 bg-slate-950/65 backdrop-blur-[1px] z-10 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-slate-950/50 to-slate-950 z-10 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-950/40 via-transparent to-indigo-950/40 z-10 pointer-events-none" />
-        {/* Soft Vignette Overlay */}
-        <div className="absolute inset-0 pointer-events-none z-10" style={{ background: 'radial-gradient(circle at center, transparent 35%, rgba(2, 6, 23, 0.75) 100%)' }} />
+        {/* Light 20% to 35% Transparent Gradient Overlay (Keeps Video Bright & Vibrant) */}
+        <div 
+          className="absolute inset-0 z-10 pointer-events-none" 
+          style={{
+            background: 'linear-gradient(to bottom, rgba(10,15,30,0.20), rgba(10,15,30,0.35))'
+          }} 
+        />
 
-        {/* Hero Content (Floating over Video) */}
-        <div className="relative z-20 text-center max-w-5xl mx-auto space-y-6 pt-4 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+        {/* Hero Content Inside Semi-Transparent Glass Container */}
+        <div className="relative z-20 text-center max-w-4xl mx-auto p-6 sm:p-10 rounded-3xl bg-[#0A0F1E]/25 backdrop-blur-[10px] border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-1000">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-400/30 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold text-blue-300 shadow-xl">
-            <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
+          <div className="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/40 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold text-blue-200 shadow-lg">
+            <Sparkles className="w-3.5 h-3.5 text-blue-300 animate-pulse" />
             <span>The Intelligence Layer for Future Smart Cities</span>
           </div>
 
-          {/* Headline */}
-          <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white tracking-tight leading-[1.05] drop-shadow-2xl">
+          {/* Headline with Crisp Text Shadows */}
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-tight leading-[1.05] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
             Smarter Decisions.<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-300 to-indigo-300">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-blue-200 to-indigo-200">
               Stronger Cities.
             </span>
           </h1>
 
           {/* Subheadline */}
-          <p className="text-base sm:text-xl text-slate-200 font-medium max-w-3xl mx-auto leading-relaxed drop-shadow-lg">
+          <p className="text-base sm:text-xl text-slate-100 font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">
             CityMind AI connects infrastructure, citizen data, budgets and policies — then uses machine learning and collaborating AI agents to determine what your city should fix next.
           </p>
 
@@ -201,16 +202,16 @@ export default function LandingPage({ onExplore, onOpenAuth }) {
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={onExplore}
-              className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-sm sm:text-base px-8 py-4 rounded-2xl shadow-2xl shadow-blue-600/50 hover:shadow-blue-500/70 transition-all flex items-center justify-center gap-2.5 group ring-1 ring-white/30"
+              className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-sm sm:text-base px-8 py-4 rounded-2xl shadow-[0_10px_30px_rgba(37,99,235,0.5)] hover:shadow-[0_15px_40px_rgba(37,99,235,0.7)] transition-all flex items-center justify-center gap-2.5 group ring-1 ring-white/30"
             >
               <span>Explore City Intelligence</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
             <button
               onClick={() => scrollToSection('agents-section')}
-              className="w-full sm:w-auto bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-extrabold text-sm sm:text-base px-8 py-4 rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2.5"
+              className="w-full sm:w-auto bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/30 text-white font-extrabold text-sm sm:text-base px-8 py-4 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all flex items-center justify-center gap-2.5"
             >
-              <Play className="w-4 h-4 text-blue-400 fill-blue-400" />
+              <Play className="w-4 h-4 text-blue-300 fill-blue-300" />
               <span>See How It Works</span>
             </button>
           </div>
