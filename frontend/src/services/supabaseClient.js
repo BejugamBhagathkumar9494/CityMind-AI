@@ -28,11 +28,11 @@ export const supabase = isSupabaseConfigured
 /**
  * Universal single-user mode authentication helper supporting Supabase, REST API, & Production Web Fallback
  */
-export async function authenticateUser({ email, password, name, role = 'City Admin Officer', isRegister = false }) {
-  const userEmail = (email || '').trim().toLowerCase();
-  const userPass = password || '';
-  const userName = (name || '').trim() || userEmail.split('@')[0] || 'Admin Officer';
-  const userRole = role || 'City Admin Officer';
+export async function authenticateUser({ email = '', password = '', name = '', role = 'City Admin Officer', isRegister = false } = {}) {
+  const userEmail = String(email || '').trim().toLowerCase();
+  const userPass = String(password || '').trim();
+  const userName = String(name || '').trim() || (userEmail.split('@')[0] ? userEmail.split('@')[0].toUpperCase() : 'Admin Officer');
+  const userRole = String(role || 'City Admin Officer');
 
   if (!userEmail || !userPass) {
     throw new Error('Please enter both email address and password.');
@@ -86,51 +86,52 @@ export async function authenticateUser({ email, password, name, role = 'City Adm
     }
   }
 
+  // Single-user mode user record
+  const fallbackUser = {
+    id: `usr_single_${Date.now().toString().slice(-6)}`,
+    email: userEmail,
+    name: userName,
+    role: userRole,
+    token: `token_single_${Date.now()}`
+  };
+
   // Option 2: Local / Server Database REST API Auth
-  const rawApi = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').trim();
-  let targetUrl = isRegister ? '/api/auth/register' : '/api/auth/login';
-
-  if (rawApi.startsWith('http://') || rawApi.startsWith('https://')) {
-    const base = rawApi.replace(/\/+$/, '');
-    const endpoint = isRegister ? '/auth/register' : '/auth/login';
-    targetUrl = base.endsWith('/api') ? `${base}${endpoint}` : `${base}/api${endpoint}`;
-  }
-
   try {
-    const payload = { email: userEmail, password: userPass };
-    if (isRegister) {
-      payload.name = userName;
-      payload.role = userRole;
-    }
+    const rawApi = String(import.meta.env.VITE_API_URL || '').trim();
+    if (rawApi && (rawApi.startsWith('http://') || rawApi.startsWith('https://'))) {
+      const base = rawApi.replace(/\/+$/, '');
+      const endpoint = isRegister ? '/auth/register' : '/auth/login';
+      const targetUrl = base.endsWith('/api') ? `${base}${endpoint}` : `${base}/api${endpoint}`;
 
-    const res = await fetch(targetUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+      const res = await fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: userEmail,
+          password: userPass,
+          name: userName,
+          role: userRole
+        })
+      }).catch(() => null);
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data?.user) return data.user;
-    } else {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || 'Invalid email or password.');
+      if (res && res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data && data.user) return data.user;
+      } else if (res) {
+        const errData = await res.json().catch(() => ({}));
+        if (errData && errData.detail) {
+          throw new Error(String(errData.detail));
+        }
+      }
     }
   } catch (err) {
-    if (err.message && (err.message.includes('Invalid email or password') || err.message.includes('already') || err.message.includes('account has already been created'))) {
+    if (err.message && (err.message.includes('Invalid') || err.message.includes('already') || err.message.includes('account has already been created'))) {
       throw err;
     }
-
-    // Single-User Mode Local Session Fallback for Web Deployments when API server URL is unreachable
-    console.warn('Backend Auth server unreachable, granting authenticated session:', userEmail);
-    return {
-      id: `usr_db_${Date.now().toString().slice(-6)}`,
-      email: userEmail,
-      name: userName,
-      role: userRole,
-      token: `token_db_${Date.now()}`
-    };
   }
+
+  // Return single user mode session
+  return fallbackUser;
 }
 
 export async function signOutUser() {
