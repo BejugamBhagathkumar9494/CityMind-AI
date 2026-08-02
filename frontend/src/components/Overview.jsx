@@ -23,16 +23,16 @@ const CITY_METRICS = {
   bengaluru: {
     name: "Bengaluru Metro Region Command Center",
     code: "BLR",
-    total_complaints: 40,
+    total_complaints: 482,
     infra_at_risk: 7,
     budget_available_inr_cr: 20.44,
-    citizens_impacted: 36950311,
-    avg_resolution_time_days: 2.4
+    citizens_impacted: 13695000,
+    avg_resolution_time_days: 1.4
   },
   mumbai: {
     name: "Mumbai Metropolitan Area Command Center",
     code: "BOM",
-    total_complaints: 58,
+    total_complaints: 619,
     infra_at_risk: 12,
     budget_available_inr_cr: 34.80,
     citizens_impacted: 21340000,
@@ -41,11 +41,56 @@ const CITY_METRICS = {
   delhi: {
     name: "Delhi National Capital Region Command Center",
     code: "DEL",
-    total_complaints: 74,
+    total_complaints: 742,
     infra_at_risk: 15,
     budget_available_inr_cr: 42.10,
     citizens_impacted: 32940000,
-    avg_resolution_time_days: 3.1
+    avg_resolution_time_days: 2.1
+  },
+  hyderabad: {
+    name: "Hyderabad Urban Development Command Center",
+    code: "HYD",
+    total_complaints: 385,
+    infra_at_risk: 8,
+    budget_available_inr_cr: 18.60,
+    citizens_impacted: 10540000,
+    avg_resolution_time_days: 1.6
+  },
+  chennai: {
+    name: "Greater Chennai Corporation Command Center",
+    code: "MAA",
+    total_complaints: 412,
+    infra_at_risk: 9,
+    budget_available_inr_cr: 22.30,
+    citizens_impacted: 11900000,
+    avg_resolution_time_days: 1.9
+  },
+  kolkata: {
+    name: "Kolkata Metropolitan Area Command Center",
+    code: "CCU",
+    total_complaints: 520,
+    infra_at_risk: 11,
+    budget_available_inr_cr: 26.50,
+    citizens_impacted: 15130000,
+    avg_resolution_time_days: 2.3
+  },
+  ahmedabad: {
+    name: "Ahmedabad Urban Development Command Center",
+    code: "AMD",
+    total_complaints: 295,
+    infra_at_risk: 6,
+    budget_available_inr_cr: 16.80,
+    citizens_impacted: 8650000,
+    avg_resolution_time_days: 1.5
+  },
+  pune: {
+    name: "Pune Metropolitan Region Command Center",
+    code: "PNQ",
+    total_complaints: 340,
+    infra_at_risk: 7,
+    budget_available_inr_cr: 19.20,
+    citizens_impacted: 7400000,
+    avg_resolution_time_days: 1.7
   }
 };
 
@@ -57,6 +102,7 @@ export default function Overview({ onNavigate, onOpenInspection, selectedCity = 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [complaintOffset, setComplaintOffset] = useState(0);
 
   const activeCityMetrics = CITY_METRICS[selectedCity] || CITY_METRICS.bengaluru;
 
@@ -78,7 +124,10 @@ export default function Overview({ onNavigate, onOpenInspection, selectedCity = 
     loadData();
     const interval = setInterval(loadData, 10000); // Live poll DB every 10 seconds
 
-    const handleComplaintRaised = () => loadData();
+    const handleComplaintRaised = () => {
+      setComplaintOffset(prev => prev + 1);
+      loadData();
+    };
     window.addEventListener('citymind:complaint-raised', handleComplaintRaised);
     window.addEventListener('citymind:data-updated', handleComplaintRaised);
 
@@ -102,10 +151,10 @@ export default function Overview({ onNavigate, onOpenInspection, selectedCity = 
   };
 
   const kpis = {
-    total_complaints: selectedCity === 'bengaluru' && analytics?.kpis?.total_complaints ? analytics.kpis.total_complaints : activeCityMetrics.total_complaints,
-    infra_at_risk: selectedCity === 'bengaluru' && analytics?.kpis?.infra_at_risk ? analytics.kpis.infra_at_risk : activeCityMetrics.infra_at_risk,
-    budget_available_inr_cr: selectedCity === 'bengaluru' && analytics?.kpis?.budget_available_inr_cr ? analytics.kpis.budget_available_inr_cr : activeCityMetrics.budget_available_inr_cr,
-    citizens_impacted: selectedCity === 'bengaluru' && analytics?.kpis?.citizens_impacted ? analytics.kpis.citizens_impacted : activeCityMetrics.citizens_impacted,
+    total_complaints: (analytics?.kpis?.total_complaints || activeCityMetrics.total_complaints) + complaintOffset,
+    infra_at_risk: activeCityMetrics.infra_at_risk,
+    budget_available_inr_cr: activeCityMetrics.budget_available_inr_cr,
+    citizens_impacted: activeCityMetrics.citizens_impacted,
     avg_resolution_time_days: activeCityMetrics.avg_resolution_time_days
   };
 

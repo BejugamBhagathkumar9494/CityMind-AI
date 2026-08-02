@@ -46,7 +46,12 @@ export default function Topbar({
   const cities = [
     { id: 'bengaluru', name: 'Bengaluru Metro Region', code: 'BLR' },
     { id: 'mumbai', name: 'Mumbai Metropolitan Area', code: 'BOM' },
-    { id: 'delhi', name: 'Delhi National Capital Region', code: 'DEL' }
+    { id: 'delhi', name: 'Delhi National Capital Region', code: 'DEL' },
+    { id: 'hyderabad', name: 'Hyderabad Urban Area', code: 'HYD' },
+    { id: 'chennai', name: 'Greater Chennai Corporation', code: 'MAA' },
+    { id: 'kolkata', name: 'Kolkata Metropolitan Area', code: 'CCU' },
+    { id: 'ahmedabad', name: 'Ahmedabad Urban Area', code: 'AMD' },
+    { id: 'pune', name: 'Pune Metropolitan Region', code: 'PNQ' }
   ];
 
   const initials = user?.name 

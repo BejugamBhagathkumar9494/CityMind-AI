@@ -40,7 +40,12 @@ const createSmartCityMarker = (riskScore) => {
 const CITY_COORDINATES = {
   bengaluru: [12.9716, 77.5946],
   mumbai: [19.0760, 72.8777],
-  delhi: [28.6139, 77.2090]
+  delhi: [28.6139, 77.2090],
+  hyderabad: [17.3850, 78.4867],
+  chennai: [13.0827, 80.2707],
+  kolkata: [22.5726, 88.3639],
+  ahmedabad: [23.0225, 72.5714],
+  pune: [18.5204, 73.8567]
 };
 
 function MapRecenter({ center }) {
@@ -180,9 +185,11 @@ export default function InfrastructureMap({ height = "600px", onSelectAsset, sel
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {filteredAssets.map((asset) => {
-            const lat = asset.latitude || (cityCenter[0] + (Math.random() - 0.5) * 0.08);
-            const lng = asset.longitude || (cityCenter[1] + (Math.random() - 0.5) * 0.08);
+          {filteredAssets.map((asset, idx) => {
+            const latOffset = ((idx * 17) % 7 - 3) * 0.012;
+            const lngOffset = ((idx * 23) % 9 - 4) * 0.014;
+            const lat = selectedCity === 'bengaluru' && asset.latitude ? asset.latitude : (cityCenter[0] + latOffset);
+            const lng = selectedCity === 'bengaluru' && asset.longitude ? asset.longitude : (cityCenter[1] + lngOffset);
             const risk = asset.risk_score || Math.round((asset.failure_probability || 0.5) * 100);
 
             return (

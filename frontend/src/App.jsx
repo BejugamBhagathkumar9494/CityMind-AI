@@ -114,23 +114,23 @@ export default function App() {
           </div>
         );
       case 'priority':
-        return <RFPriorityModule />;
+        return <RFPriorityModule selectedCity={selectedCity} />;
       case 'kmeans':
-        return <KMeansModule />;
+        return <KMeansModule selectedCity={selectedCity} />;
       case 'complaints':
-        return <Complaints />;
+        return <Complaints selectedCity={selectedCity} />;
       case 'documents':
-        return <DocumentsRAG />;
+        return <DocumentsRAG selectedCity={selectedCity} />;
       case 'budget':
-        return <BudgetPlanning />;
+        return <BudgetPlanning selectedCity={selectedCity} />;
       case 'agents':
-        return <AIAgents />;
+        return <AIAgents selectedCity={selectedCity} />;
       case 'analytics':
-        return <Analytics />;
+        return <Analytics selectedCity={selectedCity} />;
       case 'settings':
-        return <SettingsDataIngestion />;
+        return <SettingsDataIngestion selectedCity={selectedCity} />;
       default:
-        return <Overview onNavigate={setActiveTab} />;
+        return <Overview selectedCity={selectedCity} onNavigate={setActiveTab} />;
     }
   };
 
