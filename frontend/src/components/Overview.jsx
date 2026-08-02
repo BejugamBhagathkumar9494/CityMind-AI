@@ -77,7 +77,16 @@ export default function Overview({ onNavigate, onOpenInspection, selectedCity = 
     }
     loadData();
     const interval = setInterval(loadData, 10000); // Live poll DB every 10 seconds
-    return () => clearInterval(interval);
+
+    const handleComplaintRaised = () => loadData();
+    window.addEventListener('citymind:complaint-raised', handleComplaintRaised);
+    window.addEventListener('citymind:data-updated', handleComplaintRaised);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('citymind:complaint-raised', handleComplaintRaised);
+      window.removeEventListener('citymind:data-updated', handleComplaintRaised);
+    };
   }, [selectedCity]);
 
   const handleRunAnalysis = async () => {

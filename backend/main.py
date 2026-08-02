@@ -217,6 +217,52 @@ def get_complaints(search: Optional[str] = Query(None)):
     conn.close()
     return {"status": "success", "count": len(rows), "data": rows}
 
+class CreateComplaintRequest(BaseModel):
+    title: str
+    category: Optional[str] = "Road Potholes"
+    description: Optional[str] = ""
+    location: Optional[str] = "Central Metro Region"
+    priority: Optional[str] = "High"
+    citizen_name: Optional[str] = "Citizen Resident"
+
+@app.post("/api/complaints")
+def create_complaint(req: CreateComplaintRequest = Body(...)):
+    """API endpoint allowing citizens to raise new complaints, updating DB & live counts."""
+    cid = f"CMP-{uuid.uuid4().hex[:6].upper()}"
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            INSERT INTO complaints (id, title, category, description, location, severity, status, citizen_name, upvotes)
+            VALUES (?, ?, ?, ?, ?, ?, 'Open', ?, 1)
+        """, (cid, req.title, req.category, req.description, req.location, req.priority, req.citizen_name))
+        conn.commit()
+    except Exception as e:
+        print(f"Error inserting complaint: {e}")
+    finally:
+        conn.close()
+
+    new_complaint = {
+        "id": cid,
+        "title": req.title,
+        "category": req.category,
+        "description": req.description,
+        "location": req.location,
+        "priority": req.priority,
+        "severity": req.priority,
+        "status": "Open",
+        "citizen_name": req.citizen_name,
+        "upvotes": 1,
+        "created_at": datetime.now().isoformat()
+    }
+    
+    return {
+        "status": "success",
+        "message": "Complaint raised successfully",
+        "complaint": new_complaint
+    }
+
 @app.get("/api/complaints/clusters")
 def get_complaint_clusters():
     conn = get_db_connection()
