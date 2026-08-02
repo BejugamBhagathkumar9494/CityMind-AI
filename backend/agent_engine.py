@@ -40,26 +40,45 @@ class AgentOrchestrator:
             "data": {"total_complaints": len(complaints), "clusters_found": len(clusters), "clusters": clusters}
         })
 
-        # Step 2: Infrastructure Risk Agent
+        # Step 2: Infrastructure Risk & Priority Agent (Dual XGBoost + Random Forest Model)
         cursor.execute("SELECT * FROM infrastructure")
         assets = [dict(r) for r in cursor.fetchall()]
         high_risk_assets = []
+        critical_priority_assets = []
+        
         for asset in assets:
+            # Stage 1: XGBoost Failure Risk Prediction
             ml_res = ml_engine.predict_infrastructure_risk(asset)
             asset['failure_probability'] = ml_res['failure_probability']
             asset['risk_score'] = ml_res['risk_score']
+            
+            # Stage 2: Random Forest Priority Classification
+            rf_res = ml_engine.predict_random_forest_priority(asset)
+            asset['priority_class'] = rf_res['priority']
+            asset['rf_confidence'] = rf_res['confidence']
+            asset['recommended_action'] = rf_res['recommended_action']
             asset['priority_score'] = ml_engine.calculate_priority_score(asset)
+            
             if asset['risk_score'] >= 70.0:
                 high_risk_assets.append(asset)
+            if asset['priority_class'] == 'Critical':
+                critical_priority_assets.append(asset)
                 
-        assets.sort(key=lambda x: x['priority_score'], reverse=True)
+        # Sort assets by Priority Tier (Critical -> High -> Medium -> Low), then priority score
+        priority_rank = {'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1}
+        assets.sort(key=lambda x: (priority_rank.get(x.get('priority_class', 'Medium'), 2), x.get('priority_score', 0)), reverse=True)
+        
         logs.append({
             "step": 2,
             "agent_id": "agent_risk",
-            "agent_name": "Infrastructure Risk Agent",
+            "agent_name": "Infrastructure Risk & Priority Agent",
             "status": "Completed",
-            "message": f"Evaluated {len(assets)} infrastructure assets using XGBoost model. Found {len(high_risk_assets)} assets above critical risk threshold (70%+ risk score).",
-            "data": {"evaluated_assets": len(assets), "high_risk_count": len(high_risk_assets)}
+            "message": f"Evaluated {len(assets)} assets with XGBoost & Random Forest. Identified {len(critical_priority_assets)} CRITICAL priority assets requiring immediate dispatch.",
+            "data": {
+                "evaluated_assets": len(assets),
+                "high_risk_count": len(high_risk_assets),
+                "critical_priority_count": len(critical_priority_assets)
+            }
         })
 
         # Step 3: Budget Agent

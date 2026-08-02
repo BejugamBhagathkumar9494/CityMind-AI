@@ -21,7 +21,7 @@ import RoadsModule from './components/RoadsModule';
 import WaterModule from './components/WaterModule';
 import EnergyModule from './components/EnergyModule';
 import TransportModule from './components/TransportModule';
-import DepartmentModule from './components/DepartmentModule';
+import RFPriorityModule from './components/RFPriorityModule';
 import { signOutUser } from './services/supabaseClient';
 
 export default function App() {
@@ -112,6 +112,8 @@ export default function App() {
             <InfrastructureTable onOpenInspection={(asset) => setInspectedAsset(asset)} />
           </div>
         );
+      case 'priority':
+        return <RFPriorityModule />;
       case 'complaints':
         return <Complaints />;
       case 'documents':

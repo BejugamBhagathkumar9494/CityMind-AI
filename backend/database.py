@@ -39,6 +39,8 @@ def init_db():
         age_years INTEGER,
         risk_score REAL, -- 0-100
         failure_probability REAL, -- 0-1
+        priority_class TEXT, -- Critical, High, Medium, Low (from Random Forest)
+        confidence REAL, -- Random Forest confidence %
         complaints_count INTEGER,
         population_affected INTEGER,
         repair_cost_inr REAL, -- In Lakhs / Crores
@@ -46,9 +48,24 @@ def init_db():
         urgency TEXT, -- Critical, High, Medium, Low
         status TEXT, -- Pending Repair, Under Maintenance, Operational
         recommended_action TEXT,
-        last_inspected DATE
+        last_inspected DATE,
+        prediction_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
+
+    # Safe Schema Migrations for existing DB tables
+    try:
+        cursor.execute("ALTER TABLE infrastructure ADD COLUMN priority_class TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE infrastructure ADD COLUMN confidence REAL")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE infrastructure ADD COLUMN prediction_time TIMESTAMP")
+    except Exception:
+        pass
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS complaints (

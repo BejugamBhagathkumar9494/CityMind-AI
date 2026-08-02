@@ -16,12 +16,14 @@ import {
   Droplet,
   Zap,
   Bus,
-  Building2
+  Building2,
+  Cpu
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview & Upload', icon: LayoutDashboard, badge: 'Live' },
   { id: 'infrastructure', label: 'Infrastructure Risk', icon: MapPin, badge: 'XGBoost' },
+  { id: 'priority', label: 'Priority Classifier', icon: Cpu, badge: 'Random Forest' },
   { id: 'complaints', label: 'Citizen Complaints', icon: MessageSquareWarning, badge: 'NLP' },
   { id: 'documents', label: 'Policy RAG Search', icon: FolderGit2, badge: 'FAISS' },
   { id: 'budget', label: 'Budget Optimization', icon: PieChart, badge: 'Knapsack' },

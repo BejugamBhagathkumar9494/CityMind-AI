@@ -123,10 +123,13 @@ CREATE TABLE IF NOT EXISTS public.infrastructure (
     condition_rating DOUBLE PRECISION DEFAULT 5.0,
     failure_probability DOUBLE PRECISION DEFAULT 0.50,
     risk_level TEXT DEFAULT 'Medium', -- High, Medium, Low
+    priority_class TEXT DEFAULT 'Medium', -- Critical, High, Medium, Low (Random Forest)
+    confidence DOUBLE PRECISION DEFAULT 90.0, -- Random Forest Confidence %
     population_affected INT DEFAULT 10000,
     hospital_proximity_km DOUBLE PRECISION DEFAULT 2.5,
     last_inspection_date TEXT,
     status TEXT DEFAULT 'Operational', -- Operational, Degraded, Critical, Under Repair
+    prediction_time TIMESTAMPTZ DEFAULT NOW(),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

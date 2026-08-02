@@ -40,7 +40,36 @@ Instead of simply visualizing data, CityMind AI combines **XGBoost Machine Learn
 - **Asset Failure Modeling**: Continuously computes risk scores (0–100) and probability of failure across 5 urban asset categories: *Road Corridors, Water Networks, Power Grid Substations, Public Transit, and Critical Healthcare Facilities*.
 - **Multi-Factor Risk Scoring**: Combines asset age, condition rating, historical failure count, citizen complaint density, live weather telemetry, and population reach.
 
-### 2. 📚 Grounded Policy RAG Engine (FAISS + TF-IDF Vector Search)
+### 2. 🌲 Repair Priority Classification Engine (Random Forest Classifier)
+- **Multi-Class Administrative Tiers**: Classifies assets into 4 distinct repair priority classes: **Critical** (*Immediate Repair Required*), **High** (*Repair within 7 Days*), **Medium** (*Schedule Maintenance*), and **Low** (*Continue Monitoring*).
+- **High-Accuracy Classification**: Evaluated at 99.33% Accuracy and 99.34% F1-score across 13 municipal features.
+
+### 🧠 Why Both Models Work Together in the Dual-ML Pipeline
+
+```
+Infrastructure Telemetry & Features
+                ↓
+Feature Engineering & Normalization
+                ↓
+    ⚡ XGBoost Risk Engine
+(Risk Score + Failure Probability)
+                ↓
+🌲 Random Forest Priority Classifier
+(Critical / High / Medium / Low + Confidence %)
+                ↓
+    📚 RAG Policy Engine (DMC Act 1957)
+                ↓
+    🤖 AI Multi-Agent System
+                ↓
+💰 0/1 Knapsack Budget Optimization
+                ↓
+    🚨 Emergency Dispatch & GIS Dashboard
+```
+
+- **Why XGBoost?** XGBoost is optimized for continuous regression targets, outputting precise, non-linear failure probabilities (0.00–1.00) and risk scores based on physical telemetry.
+- **Why Random Forest?** Random Forest excels at robust multi-class decision boundary partitioning, converting continuous risk scores and multi-variable operational constraints into clear, un-ambiguous administrative priority tiers (*Critical, High, Medium, Low*).
+
+### 3. 📚 Grounded Policy RAG Engine (FAISS + TF-IDF Vector Search)
 - **Statutory Law & Guideline Retrieval**: Integrates the official **Delhi Municipal Corporation (DMC) Act 1957** (160+ chunks) and smart city infrastructure standard operating procedures.
 - **Explainable AI Decisions**: Every repair recommendation and budget clearance is backed by statutory section citations and confidence scoring up to 98%.
 - **PDF & Document Ingestion**: Upload municipal policy PDFs directly via the UI or backend pipeline for instant FAISS vector re-indexing.

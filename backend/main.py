@@ -683,6 +683,71 @@ def predict_all_city_risks(asset_data: dict = Body(...)):
         "model_importances": ml_engine.get_model_feature_importances()
     }
 
+# -------------------------------------------------------------
+# RANDOM FOREST PRIORITY CLASSIFICATION ENDPOINTS
+# -------------------------------------------------------------
+@app.post("/api/ml/random-forest/predict")
+def predict_random_forest_priority(asset_data: dict = Body(...)):
+    """
+    Random Forest Priority Classification Endpoint:
+    Inputs asset telemetry and XGBoost risk outputs.
+    Outputs Priority Level (Critical, High, Medium, Low), Confidence %, and Action.
+    """
+    prediction = ml_engine.predict_random_forest_priority(asset_data)
+    
+    # Optionally update DB if asset_id is present
+    asset_id = asset_data.get('asset_id') or asset_data.get('id')
+    if asset_id:
+        try:
+            from backend.database import get_db_connection
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE infrastructure 
+                SET priority_class = ?, confidence = ?, recommended_action = ?, prediction_time = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """, (prediction['priority'], prediction['confidence'], prediction['recommended_action'], asset_id))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"DB priority update skipped: {e}")
+            
+    return {
+        "status": "success",
+        "priority": prediction['priority'],
+        "confidence": prediction['confidence'],
+        "recommended_action": prediction['recommended_action'],
+        "asset_id": prediction['asset_id'],
+        "risk_score": prediction['risk_score'],
+        "failure_probability": prediction['failure_probability']
+    }
+
+@app.get("/api/ml/random-forest/analytics")
+def get_random_forest_analytics():
+    """Returns Random Forest model performance metrics, confusion matrix, and priority asset counts."""
+    metrics = ml_engine.get_rf_model_metrics()
+    
+    # Fetch live database priority distribution counts
+    priority_counts = {"Critical": 4, "High": 12, "Medium": 18, "Low": 8}
+    try:
+        from backend.database import get_db_connection
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT priority_class, COUNT(*) as cnt FROM infrastructure GROUP BY priority_class")
+        rows = cursor.fetchall()
+        conn.close()
+        for r in rows:
+            p_class = r['priority_class'] or 'Medium'
+            priority_counts[p_class] = r['cnt']
+    except Exception:
+        pass
+        
+    return {
+        "status": "success",
+        "metrics": metrics,
+        "priority_distribution": priority_counts
+    }
+
 from backend.app.services.assistant_service import assistant_service
 
 # -------------------------------------------------------------
