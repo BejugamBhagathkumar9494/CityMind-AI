@@ -37,6 +37,14 @@ export default function BudgetPlanning() {
     } catch (e) {}
   };
 
+  const allocatedCr = Number(optimization?.allocated_cr ?? optimization?.total_cost_allocated_cr ?? (totalBudgetCr * 0.75));
+  const remainingCr = Number(optimization?.remaining_cr ?? optimization?.unallocated_budget_cr ?? (totalBudgetCr * 0.25));
+  const citizensBenefited = Number(optimization?.citizens_benefited ?? optimization?.total_population_protected ?? (totalBudgetCr * 25000));
+  const sectorBreakdown = (optimization?.sector_breakdown && typeof optimization.sector_breakdown === 'object')
+    ? optimization.sector_breakdown
+    : { "Roads": totalBudgetCr * 0.40, "Water": totalBudgetCr * 0.25, "Electricity": totalBudgetCr * 0.20, "Transport": totalBudgetCr * 0.15 };
+  const selectedProjects = optimization?.selected_projects || [];
+
   return (
     <div className="space-y-6 pb-12">
       {/* Header Banner */}
@@ -131,7 +139,7 @@ export default function BudgetPlanning() {
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-card">
           <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Allocated Funds</span>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-extrabold text-emerald-600">₹{optimization?.allocated_cr.toFixed(2) || (totalBudgetCr * 0.75).toFixed(2)} Cr</span>
+            <span className="text-2xl font-extrabold text-emerald-600">₹{allocatedCr.toFixed(2)} Cr</span>
           </div>
           <p className="text-[11px] text-emerald-600 font-semibold mt-1">Optimized Project Allocation</p>
         </div>
@@ -139,7 +147,7 @@ export default function BudgetPlanning() {
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-card">
           <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Unallocated Reserve</span>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-extrabold text-slate-700">₹{optimization?.remaining_cr.toFixed(2) || (totalBudgetCr * 0.25).toFixed(2)} Cr</span>
+            <span className="text-2xl font-extrabold text-slate-700">₹{remainingCr.toFixed(2)} Cr</span>
           </div>
           <p className="text-[11px] text-slate-500 font-semibold mt-1">Contingency Reserve</p>
         </div>
@@ -147,7 +155,7 @@ export default function BudgetPlanning() {
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-card">
           <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Citizens Protected</span>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-extrabold text-blue-600">{((optimization?.citizens_benefited || (totalBudgetCr * 25000))/1000).toFixed(0)}k</span>
+            <span className="text-2xl font-extrabold text-blue-600">{(citizensBenefited / 1000).toFixed(0)}k</span>
           </div>
           <p className="text-[11px] text-blue-600 font-semibold mt-1">Maximum Population ROI</p>
         </div>
@@ -168,25 +176,25 @@ export default function BudgetPlanning() {
           <div className="space-y-3 text-xs">
             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
               <span>Roads & Bridges</span>
-              <strong className="text-slate-900">₹3.20 Cr (Static)</strong>
+              <strong className="text-slate-900">₹{(totalBudgetCr * 0.32).toFixed(2)} Cr (Static)</strong>
             </div>
             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
               <span>Water Sanitation</span>
-              <strong className="text-slate-900">₹2.45 Cr (Static)</strong>
+              <strong className="text-slate-900">₹{(totalBudgetCr * 0.25).toFixed(2)} Cr (Static)</strong>
             </div>
             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
               <span>Energy & Power</span>
-              <strong className="text-slate-900">₹2.10 Cr (Static)</strong>
+              <strong className="text-slate-900">₹{(totalBudgetCr * 0.21).toFixed(2)} Cr (Static)</strong>
             </div>
             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
               <span>Public Transport</span>
-              <strong className="text-slate-900">₹1.35 Cr (Static)</strong>
+              <strong className="text-slate-900">₹{(totalBudgetCr * 0.14).toFixed(2)} Cr (Static)</strong>
             </div>
           </div>
 
           <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-xl text-xs text-red-900">
             <span className="font-bold block">Outcome Before AI:</span>
-            Traditional spending fixed by department quotas, ignoring 152 high-risk assets and citizen complaint hotspots.
+            Traditional spending fixed by department quotas, ignoring high-risk assets and citizen complaint hotspots.
           </div>
         </div>
 
@@ -198,25 +206,58 @@ export default function BudgetPlanning() {
               <h3 className="text-sm font-extrabold text-blue-950">After CityMind AI (Algorithmic)</h3>
             </div>
             <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
-              +74.5% Risk Reduction
+              +{optimization?.overall_city_risk_reduction_pct || 74.5}% Risk Reduction
             </span>
           </div>
 
           <div className="space-y-3 text-xs">
-            {Object.entries(optimization?.sector_breakdown || { "Roads": 3.25, "Water": 1.70, "Electricity": 1.10, "Transport": 0.20 }).map(([sector, amount]) => (
+            {Object.entries(sectorBreakdown).map(([sector, amount]) => (
               <div key={sector} className="flex items-center justify-between p-3 bg-blue-50/60 rounded-xl border border-blue-100">
                 <span className="font-semibold text-blue-950">{sector} Sector</span>
-                <strong className="text-blue-700">₹{amount.toFixed(2)} Cr</strong>
+                <strong className="text-blue-700">₹{Number(amount || 0).toFixed(2)} Cr</strong>
               </div>
             ))}
           </div>
 
           <div className="mt-4 p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-xs text-emerald-900">
             <span className="font-bold block">Outcome After CityMind AI:</span>
-            Re-allocates ₹6.25 Cr to top 6 critical infrastructure assets protecting 243,000 citizens with maximum ROI.
+            Re-allocates ₹{allocatedCr.toFixed(2)} Cr to critical infrastructure assets protecting {(citizensBenefited / 1000).toFixed(0)}k citizens with maximum ROI.
           </div>
         </div>
       </div>
+
+      {/* OPTIMIZED SELECTED PROJECTS REGISTER */}
+      {selectedProjects.length > 0 && (
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card space-y-4">
+          <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Selected Projects in Optimized Knapsack Portfolio</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-slate-600">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px]">
+                <tr>
+                  <th className="p-3">Asset ID</th>
+                  <th className="p-3">Project Name</th>
+                  <th className="p-3">Sector</th>
+                  <th className="p-3">Risk Score</th>
+                  <th className="p-3">Repair Cost</th>
+                  <th className="p-3">Population Reach</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium">
+                {selectedProjects.map((proj) => (
+                  <tr key={proj.id} className="hover:bg-slate-50">
+                    <td className="p-3 font-mono font-bold text-slate-900">{proj.id}</td>
+                    <td className="p-3 font-bold text-slate-900">{proj.name}</td>
+                    <td className="p-3"><span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded">{proj.type}</span></td>
+                    <td className="p-3 font-bold text-red-600">{proj.risk_score} / 100</td>
+                    <td className="p-3 font-bold text-slate-900">₹{proj.repair_cost_inr} Cr</td>
+                    <td className="p-3 text-slate-600">{proj.population_affected?.toLocaleString()} residents</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
