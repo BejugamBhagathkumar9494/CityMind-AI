@@ -65,17 +65,28 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode('utf-8')).hexdigest()
 
 # ----------------------------
-# 0. AUTHENTICATION & AUTHORIZATION APIS
+# 0. AUTHENTICATION & AUTHORIZATION APIS (SINGLE-USER MODE)
 # ----------------------------
 @app.post("/api/auth/register")
 def register_user(req: RegisterRequest = Body(...)):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id FROM users WHERE email = ?", (req.email.lower(),))
-    if cursor.fetchone():
-        conn.close()
-        raise HTTPException(status_code=400, detail="User with this email already exists.")
     
+    # Check if ANY user already exists in the database
+    cursor.execute("SELECT COUNT(*) FROM users")
+    user_count = cursor.fetchone()[0]
+    
+    if user_count > 0:
+        conn.close()
+        raise HTTPException(
+            status_code=400, 
+            detail="A user account has already been created. Please log in using the existing account."
+        )
+        
+    if not req.email or not req.password:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Name, Email, and Password fields are required.")
+        
     user_id = f"USR-{secrets.token_hex(4).upper()}"
     pass_hash = hash_password(req.password)
     user_name = req.name or req.email.split('@')[0].capitalize()
@@ -83,7 +94,7 @@ def register_user(req: RegisterRequest = Body(...)):
     
     cursor.execute(
         "INSERT INTO users (id, email, password_hash, name, role) VALUES (?, ?, ?, ?, ?)",
-        (user_id, req.email.lower(), pass_hash, user_name, user_role)
+        (user_id, req.email.lower().strip(), pass_hash, user_name, user_role)
     )
     conn.commit()
     conn.close()
@@ -94,7 +105,7 @@ def register_user(req: RegisterRequest = Body(...)):
         "message": "User registered successfully.",
         "user": {
             "id": user_id,
-            "email": req.email.lower(),
+            "email": req.email.lower().strip(),
             "name": user_name,
             "role": user_role,
             "token": token
@@ -105,36 +116,18 @@ def register_user(req: RegisterRequest = Body(...)):
 def login_user(req: LoginRequest = Body(...)):
     conn = get_db_connection()
     cursor = conn.cursor()
-    pass_hash = hash_password(req.password)
     
-    cursor.execute("SELECT * FROM users WHERE email = ?", (req.email.lower(),))
+    cursor.execute("SELECT * FROM users WHERE email = ?", (req.email.lower().strip(),))
     row = cursor.fetchone()
     
     if not row:
-        if req.email.lower() == "admin@citymind.ai" and req.password == "citymind2026":
-            user_id = "USR-ADMIN-001"
-            cursor.execute(
-                "INSERT INTO users (id, email, password_hash, name, role) VALUES (?, ?, ?, ?, ?)",
-                (user_id, req.email.lower(), pass_hash, "Admin Officer", "City Admin Officer")
-            )
-            conn.commit()
-            conn.close()
-            return {
-                "status": "success",
-                "user": {
-                    "id": user_id,
-                    "email": req.email.lower(),
-                    "name": "Admin Officer",
-                    "role": "City Admin Officer",
-                    "token": f"token_{secrets.token_hex(16)}"
-                }
-            }
         conn.close()
         raise HTTPException(status_code=401, detail="Invalid email or password.")
-    
+        
     user = dict(row)
     conn.close()
     
+    pass_hash = hash_password(req.password)
     if user.get('password_hash') and user['password_hash'] != pass_hash:
         raise HTTPException(status_code=401, detail="Invalid email or password.")
         
